@@ -1,0 +1,17 @@
+title = "caromafla gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Plantillas y datos ficticios"
+paths = [
+  '''\.env\.example$''',
+  '''supabase/seed\.sql$''',
+  '''package-lock\.json$''',
+  '''docs/.*''',
+]
+regexes = [
+  '''TODO_REAL''',
+  '''example\.(com|org)''',
+]

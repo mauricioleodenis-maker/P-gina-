@@ -4,6 +4,7 @@ import createMDX from '@next/mdx';
 const nextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  serverExternalPackages: ['@react-pdf/renderer'],
   pageExtensions: ['ts', 'tsx', 'md', 'mdx'],
 };
 

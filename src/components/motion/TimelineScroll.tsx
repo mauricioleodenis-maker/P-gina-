@@ -64,7 +64,7 @@ export function TimelineScroll({ steps, className = '' }: { steps: TimelineStep[
             >
               {i + 1}
             </span>
-            <div className={`pt-1 transition-opacity duration-500 ${on ? 'opacity-100' : 'opacity-60'}`}>
+            <div className={`pt-1 transition-opacity duration-500 ${on ? 'opacity-100' : 'opacity-75'}`}>
               <h3 className="font-serif text-2xl">{s.title}</h3>
               <div className="mt-2 measure text-ink-soft">{s.body}</div>
             </div>

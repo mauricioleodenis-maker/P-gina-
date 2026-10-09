@@ -81,7 +81,7 @@ export async function listPayments(opts: { month?: string; limit?: number } = {}
     .order('created_at', { ascending: false })
     .limit(opts.limit ?? 200);
   if (opts.month) {
-    const [y, m] = opts.month.split('-').map(Number);
+    const [y = 0, m = 1] = opts.month.split('-').map(Number);
     const next = m === 12 ? `${y + 1}-01` : `${y}-${String(m + 1).padStart(2, '0')}`;
     q = q.gte('paid_at', madridStart(`${opts.month}-01`).toISOString()).lt('paid_at', madridStart(`${next}-01`).toISOString());
   }
@@ -229,7 +229,7 @@ export async function listInvoices(opts: { month?: string; limit?: number } = {}
     .order('seq_no', { ascending: false })
     .limit(opts.limit ?? 200);
   if (opts.month) {
-    const [y, m] = opts.month.split('-').map(Number);
+    const [y = 0, m = 1] = opts.month.split('-').map(Number);
     const last = new Date(Date.UTC(y, m, 0)).getUTCDate();
     q = q.gte('issued_on', `${opts.month}-01`).lte('issued_on', `${opts.month}-${String(last).padStart(2, '0')}`);
   }

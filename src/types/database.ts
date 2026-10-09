@@ -26,7 +26,7 @@ export type DataRequestStatus = 'received' | 'in_progress' | 'resolved' | 'rejec
 export type NoteTemplate = 'free' | 'soap';
 export type ProfileRole = 'admin' | 'assistant';
 
-export interface Guardian {
+export type Guardian = {
   name: string;
   relationship?: string;
   email?: string;
@@ -34,9 +34,9 @@ export interface Guardian {
   national_id?: string;
 }
 
-export interface ProfileRow { id: string; role: ProfileRole; full_name: string | null; created_at: string; updated_at: string }
+export type ProfileRow = { id: string; role: ProfileRole; full_name: string | null; created_at: string; updated_at: string }
 
-export interface PracticeSettingsRow {
+export type PracticeSettingsRow = {
   id: boolean; business_name: string; legal_name: string | null; nif: string | null; address: string | null;
   college_number: string | null; phone: string | null; contact_email: string | null; timezone: string;
   slot_step_min: number; buffer_min: number; min_notice_hours: number; max_advance_days: number;
@@ -44,12 +44,12 @@ export interface PracticeSettingsRow {
   default_vat_rate: number; vat_exemption_text: string | null; invoice_footer: string | null; updated_at: string;
 }
 
-export interface ServiceRow {
+export type ServiceRow = {
   id: string; slug: string; name: string; description: string | null; duration_min: number; price_cents: number;
   currency: string; modality: ServiceModality; active: boolean; sort_order: number; created_at: string; updated_at: string;
 }
 
-export interface PatientRow {
+export type PatientRow = {
   id: string; full_name: string; email: string | null; phone: string | null; birth_date: string | null;
   national_id: string | null; address: string | null; emergency_contact: string | null; guardian: Guardian | null;
   modality: Modality; default_price_cents: number | null; tags: string[]; status: PatientStatus; restricted: boolean;
@@ -57,13 +57,13 @@ export interface PatientRow {
   deleted_at: string | null; anonymized_at: string | null; created_at: string; updated_at: string;
 }
 
-export interface AppointmentSeriesRow {
+export type AppointmentSeriesRow = {
   id: string; patient_id: string; service_id: string; rrule: string; dtstart: string; duration_min: number;
   until: string | null; tz: string; modality: Modality; price_cents: number | null; materialized_until: string | null;
   active: boolean; created_at: string; updated_at: string;
 }
 
-export interface AppointmentRow {
+export type AppointmentRow = {
   id: string; patient_id: string | null; service_id: string; series_id: string | null; starts_at: string; ends_at: string;
   /** columna generada (tstzrange); solo lectura */
   period: string; status: AppointmentStatus; modality: Modality; meeting_url: string | null; price_cents: number | null;
@@ -73,66 +73,66 @@ export interface AppointmentRow {
   created_at: string; updated_at: string;
 }
 
-export interface SessionNoteRow {
+export type SessionNoteRow = {
   id: string; patient_id: string; appointment_id: string | null; template: NoteTemplate;
   /** AES-256-GCM, hex "\\x..." (nonce||ciphertext||tag). Ver src/lib/crypto */
   body_enc: string; key_version: number; created_by: string | null; created_at: string; updated_at: string;
 }
 
-export interface SessionNoteVersionRow {
+export type SessionNoteVersionRow = {
   id: string; note_id: string; body_enc: string; key_version: number; saved_at: string; saved_by: string | null;
 }
 
-export interface InvoiceCounterRow { series: string; year: number; last_number: number }
+export type InvoiceCounterRow = { series: string; year: number; last_number: number }
 
-export interface InvoiceRow {
+export type InvoiceRow = {
   id: string; series: string; year: number; seq_no: number; number: string; patient_id: string;
   rectifies_id: string | null; issued_on: string; subtotal_cents: number; vat_rate: number; vat_cents: number;
   total_cents: number; currency: string; status: InvoiceStatus; concept: string; fiscal_snapshot: Json | null;
   pdf_path: string | null; created_at: string; updated_at: string;
 }
 
-export interface PaymentRow {
+export type PaymentRow = {
   id: string; patient_id: string; appointment_id: string | null; invoice_id: string | null; service_id: string | null;
   refund_of: string | null; amount_cents: number; currency: string; method: PaymentMethod; status: PaymentStatus;
   paid_at: string | null; external_ref: string | null; concept: string | null; created_at: string; updated_at: string;
 }
 
-export interface AvailabilityRuleRow {
+export type AvailabilityRuleRow = {
   id: string; weekday: number; start_time: string; end_time: string; modality: ServiceModality; active: boolean;
 }
 
-export interface AvailabilityExceptionRow {
+export type AvailabilityExceptionRow = {
   id: string; starts_on: string; ends_on: string; is_closed: boolean; start_time: string | null; end_time: string | null;
   reason: string | null; created_at: string;
 }
 
-export interface ContactMessageRow {
+export type ContactMessageRow = {
   id: string; name: string; email: string; phone: string | null; message: string; consent: boolean;
   handled: boolean; created_at: string;
 }
 
-export interface ConsentRow {
+export type ConsentRow = {
   id: string; patient_id: string | null; appointment_id: string | null; purpose: ConsentPurpose; text_version: string;
   given_at: string; ip_hash: string | null; document_path: string | null; withdrawn_at: string | null;
 }
 
-export interface DataRequestRow {
+export type DataRequestRow = {
   id: string; patient_id: string | null; requester_name: string; requester_email: string; type: DataRequestType;
   status: DataRequestStatus; received_at: string; due_at: string; resolution: string | null;
   resolved_at: string | null; created_at: string;
 }
 
-export interface AuditLogRow {
+export type AuditLogRow = {
   id: number; actor: string | null; table_name: string; row_id: string | null; action: string; at: string;
   ip_hash: string | null; result: string | null; meta: Json | null;
 }
 
-export interface IncomeMonthlyRow {
+export type IncomeMonthlyRow = {
   month: string | null; service_id: string | null; payments_count: number | null; income_cents: number | null;
 }
 
-type Rel = never[];
+type Rel = [];
 
 export type Database = {
   public: {

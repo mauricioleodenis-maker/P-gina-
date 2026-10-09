@@ -32,17 +32,17 @@ describe('series de ingresos', () => {
   it('12 meses, mes sin ingresos a cero, reembolso resta, zona Madrid', () => {
     const s = monthlySeries(rows, 2026);
     expect(s).toHaveLength(12);
-    expect(s[2].incomeCents).toBe(4000);
-    expect(s[0].incomeCents).toBe(0);
-    expect(s[11].incomeCents).toBe(0);
-    expect(monthlySeries(rows, 2027)[0].incomeCents).toBe(1000);
+    expect(s[2]?.incomeCents).toBe(4000);
+    expect(s[0]?.incomeCents).toBe(0);
+    expect(s[11]?.incomeCents).toBe(0);
+    expect(monthlySeries(rows, 2027)[0]?.incomeCents).toBe(1000);
   });
   it('informe anual con variacion y desgloses', () => {
     const r = buildReport(rows, 2026, new Map([['s1', 'Sesion individual']]), new Date('2026-04-15T10:00:00Z'));
     expect(r.totalCurrent).toBe(4000);
     expect(r.totalPrevious).toBe(4000);
     expect(r.variationPct).toBe(0);
-    expect(r.byService[0].label).toBe('Sesion individual');
+    expect(r.byService[0]?.label).toBe('Sesion individual');
     expect(r.currentMonthCents).toBe(0);
     expect(r.previousMonthCents).toBe(4000);
   });

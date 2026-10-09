@@ -42,7 +42,7 @@ export function ScrubText({ text, className = '' }: { text: string; className?: 
   return (
     <p ref={ref} className={className}>
       {words.map((w, i) => (
-        <span key={i} data-w style={{ opacity: 'calc(0.25 + 0.75 * var(--wp, 1))' }}>
+        <span key={i} data-w style={{ opacity: 'calc(0.55 + 0.45 * var(--wp, 1))' }}>
           {w}{' '}
         </span>
       ))}

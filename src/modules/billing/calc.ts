@@ -84,13 +84,13 @@ export function buildReport(
   const totalCurrent = cur.reduce((s, p) => s + p.incomeCents, 0);
   const totalPrevious = prev.reduce((s, p) => s + p.incomeCents, 0);
   const nowYm = formatMadrid(now, 'yyyy-MM');
-  const [ny, nm] = nowYm.split('-').map(Number);
+  const [ny = 0, nm = 1] = nowYm.split('-').map(Number);
   const pm = nm === 1 ? { y: ny - 1, m: 12 } : { y: ny, m: nm - 1 };
   const find = (y: number, m: number) =>
     (y === year ? cur : y === year - 1 ? prev : monthlySeries(rows, y))[m - 1]?.incomeCents ?? 0;
   return {
     year,
-    months: cur.map((p, i) => ({ month: i + 1, label: monthLabel(i + 1), current: p.incomeCents, previous: prev[i].incomeCents })),
+    months: cur.map((p, i) => ({ month: i + 1, label: monthLabel(i + 1), current: p.incomeCents, previous: prev[i]?.incomeCents ?? 0 })),
     totalCurrent,
     totalPrevious,
     variationPct: variationPct(totalCurrent, totalPrevious),

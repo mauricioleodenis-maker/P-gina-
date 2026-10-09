@@ -8,6 +8,7 @@ export function DrawLine({ className = '', d = 'M4 60 C 60 10, 120 110, 190 55 S
     <svg
       ref={ref}
       viewBox="0 0 400 120"
+      preserveAspectRatio="xMinYMid meet"
       fill="none"
       aria-hidden="true"
       focusable="false"
