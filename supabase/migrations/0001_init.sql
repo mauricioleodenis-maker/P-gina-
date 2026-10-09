@@ -19,6 +19,12 @@ create or replace function public.set_updated_at() returns trigger
 language plpgsql as $$
 begin new.updated_at = now(); return new; end $$;
 
+-- busqueda sin acentos (unaccent no es IMMUTABLE: envoltorio para poder indexar)
+create or replace function public.f_unaccent(text) returns text
+language sql immutable parallel safe strict as $$
+  select public.unaccent('public.unaccent'::regdictionary, $1)
+$$;
+
 -- ---------- profiles ----------
 create table public.profiles (
   id          uuid primary key references auth.users(id) on delete cascade,
@@ -111,6 +117,8 @@ create table public.patients (
   updated_at        timestamptz not null default now()
 );
 create index patients_name_trgm on public.patients using gin (full_name gin_trgm_ops);
+create index patients_name_unaccent_trgm on public.patients
+  using gin (public.f_unaccent(lower(full_name)) gin_trgm_ops);
 create index patients_email_idx on public.patients (email);
 create index patients_active_idx on public.patients (status) where deleted_at is null;
 create trigger trg_patients_upd before update on public.patients
@@ -249,6 +257,9 @@ begin
   end if;
   if old.status <> 'draft' and (
        new.number is distinct from old.number or new.patient_id is distinct from old.patient_id
+    or new.series is distinct from old.series or new.year is distinct from old.year
+    or new.seq_no is distinct from old.seq_no or new.rectifies_id is distinct from old.rectifies_id
+    or new.fiscal_snapshot is distinct from old.fiscal_snapshot or new.currency is distinct from old.currency
     or new.subtotal_cents is distinct from old.subtotal_cents or new.vat_rate is distinct from old.vat_rate
     or new.vat_cents is distinct from old.vat_cents or new.total_cents is distinct from old.total_cents
     or new.concept is distinct from old.concept or new.issued_on is distinct from old.issued_on) then
@@ -378,6 +389,11 @@ language plpgsql as $$ begin raise exception 'audit_log is append-only'; end $$;
 create trigger trg_audit_immutable before update or delete on public.audit_log
   for each row execute function public.audit_log_immutable();
 
+create or replace function public.audit_log_no_truncate() returns trigger
+language plpgsql as $$ begin raise exception 'audit_log is append-only'; end $$;
+create trigger trg_audit_no_truncate before truncate on public.audit_log
+  for each statement execute function public.audit_log_no_truncate();
+
 create or replace function public.audit_trigger() returns trigger
 language plpgsql security definer set search_path = public as $$
 begin
@@ -429,6 +445,13 @@ alter table public.payments              force row level security;
 alter table public.invoices              force row level security;
 alter table public.consents              force row level security;
 alter table public.audit_log             force row level security;
+alter table public.practice_settings     force row level security;
+alter table public.invoice_counters      force row level security;
+alter table public.availability_rules    force row level security;
+alter table public.availability_exceptions force row level security;
+alter table public.contact_messages      force row level security;
+alter table public.data_requests         force row level security;
+-- (profiles y services quedan sin FORCE: is_admin() lee profiles como propietario; services es lectura publica)
 
 -- Solo admin (rol admin + aal2)
 create policy admin_all on public.practice_settings       for all to authenticated using (public.is_admin()) with check (public.is_admin());
@@ -437,7 +460,8 @@ create policy admin_all on public.appointment_series      for all to authenticat
 create policy admin_all on public.appointments            for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy admin_all on public.session_notes           for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy admin_all on public.session_note_versions   for all to authenticated using (public.is_admin()) with check (public.is_admin());
-create policy admin_all on public.invoice_counters        for all to authenticated using (public.is_admin()) with check (public.is_admin());
+-- el contador solo lo modifica issue_invoice (sin huecos): el admin unicamente lo lee
+create policy admin_read on public.invoice_counters       for select to authenticated using (public.is_admin());
 create policy admin_all on public.invoices                for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy admin_all on public.payments                for all to authenticated using (public.is_admin()) with check (public.is_admin());
 create policy admin_all on public.availability_rules      for all to authenticated using (public.is_admin()) with check (public.is_admin());
@@ -485,6 +509,10 @@ language plpgsql security definer set search_path = public as $$
 declare v_dur int; v_price int; v_id uuid; v_s public.practice_settings;
 begin
   if not (p_consent_privacy and p_consent_health) then raise exception 'consent_required'; end if;
+  if p_email is null or p_email !~ '^[^@\s]+@[^@\s]+\.[^@\s]+$' or char_length(p_email) > 254 then
+    raise exception 'invalid_email'; end if;
+  if p_name is null or btrim(p_name) = '' then raise exception 'invalid_name'; end if;
+  if coalesce(p_modality,'in_person') not in ('in_person','online') then raise exception 'invalid_modality'; end if;
   select * into v_s from public.practice_settings where id;
   if p_starts < now() + make_interval(hours => v_s.min_notice_hours) then raise exception 'too_soon'; end if;
   if p_starts > now() + make_interval(days => v_s.max_advance_days) then raise exception 'too_far'; end if;
@@ -519,6 +547,8 @@ declare v_year int := extract(year from (now() at time zone 'Europe/Madrid'))::i
         v_n int; v_vat int; v_id uuid;
 begin
   if not public.is_admin() then raise exception 'forbidden'; end if;
+  if p_series is null or p_series !~ '^[A-Z]{1,3}$' then raise exception 'invalid_series'; end if;
+  if p_subtotal_cents is null or p_subtotal_cents < 0 then raise exception 'invalid_amount'; end if;
   insert into public.invoice_counters(series, year, last_number) values (p_series, v_year, 1)
     on conflict (series, year) do update set last_number = public.invoice_counters.last_number + 1
     returning last_number into v_n;
@@ -555,6 +585,15 @@ revoke all on all sequences in schema public from anon;
 grant select on public.services to anon;
 grant select, insert, update, delete on all tables in schema public to authenticated;  -- RLS decide
 grant all on all tables in schema public to service_role;
+-- invoice_counters: solo lectura (lo escribe issue_invoice, SECURITY DEFINER)
+revoke insert, update, delete, truncate on public.invoice_counters from authenticated;
+-- audit_log: append-only tambien a nivel de privilegios
+revoke update, delete, truncate on public.audit_log from authenticated, service_role;
+revoke truncate on all tables in schema public from authenticated, service_role;
+-- objetos futuros: nada para anon por defecto
+alter default privileges in schema public revoke all on tables    from anon;
+alter default privileges in schema public revoke all on sequences from anon;
+alter default privileges in schema public revoke execute on functions from public, anon;
 
 revoke execute on all functions in schema public from public, anon;
 grant execute on function public.is_admin()      to authenticated;

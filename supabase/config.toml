@@ -1,0 +1,46 @@
+# Supabase CLI - proyecto Caromafla. Produccion/staging: proyectos en region UE (Frankfurt, eu-central-1).
+project_id = "caromafla"
+
+[api]
+enabled = true
+port = 54321
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 54322
+major_version = 15
+
+[db.seed]
+enabled = true
+sql_paths = ["./seed.sql"]
+
+[auth]
+enabled = true
+site_url = "http://localhost:3000"
+additional_redirect_urls = ["http://localhost:3000/login"]
+jwt_expiry = 3600                    # 1 h (PLAN s.7)
+enable_refresh_token_rotation = true
+enable_signup = false                # sin registro publico (C5)
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+double_confirm_changes = true
+
+[auth.mfa.totp]
+enroll_enabled = true
+verify_enabled = true
+
+[auth.mfa]
+max_enrolled_factors = 4
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[auth.rate_limit]
+sign_in_sign_ups = 10
