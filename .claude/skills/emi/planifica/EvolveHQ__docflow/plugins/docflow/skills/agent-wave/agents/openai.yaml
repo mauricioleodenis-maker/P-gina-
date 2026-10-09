@@ -1,0 +1,4 @@
+interface:
+  display_name: "docflow: agent-wave"
+  short_description: "Run a bounded queue wave using available parallel or sequential execution."
+  default_prompt: "Run a bounded wave over the plan queue using this host's available capabilities."

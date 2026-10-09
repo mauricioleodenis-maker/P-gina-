@@ -1,0 +1,420 @@
+{
+  "skill_name": "quality-gate",
+  "evals": [
+    {
+      "id": 1,
+      "prompt": "I just finished writing a design doc for adding a caching layer to our REST API. The design says we'll use Redis for everything — session data, query caches, rate limiting counters, and as the primary data store for user preferences. We'll run a single Redis instance with no replication. The cache invalidation strategy is 'clear everything on deploy'. Please run a quality gate on this design.",
+      "expected_output": "Quality gate should identify multiple issues across multiple rounds, tracking weighted severity scores, and iterate until findings are addressed or stagnation is detected.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Each round includes explicit Fatal or Significant severity ratings",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "Artifact was revised between rounds based on findings",
+        "Stagnation detection applied via weighted score comparison after each round",
+        "First output message explicitly states this is a quality gate review",
+        "Identified single point of failure as a Fatal-severity issue",
+        "Identified using Redis as primary data store as a Fatal-severity issue",
+        "Identified naive cache invalidation strategy as a problem",
+        "Final round has zero Fatal findings in the revised artifact",
+        "Final revised design no longer uses Redis as primary data store",
+        "Final revised design addresses single point of failure with replication or failover"
+      ]
+    },
+    {
+      "id": 2,
+      "prompt": "Here's my implementation plan for adding email notifications. Task 1: Install nodemailer. Task 2: Write a sendEmail function that takes to/subject/body and calls nodemailer.sendMail directly from the request handler. Task 3: Add a POST /send-notification endpoint. Task 4: Deploy. Run a quality gate on this plan.",
+      "expected_output": "Quality gate should catch missing error handling, no queuing/async processing, no retry logic, no TDD structure, missing tests, tight coupling to request handler. Should iterate with weighted scoring.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Each round includes explicit Fatal or Significant severity ratings",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "Artifact was revised between rounds based on findings",
+        "Stagnation detection applied via weighted score comparison after each round",
+        "Explicitly announced running a quality gate at start",
+        "Identified synchronous email sending in request handler as a problem",
+        "Identified missing authentication/authorization on the endpoint",
+        "Identified missing tests in the plan",
+        "Final round has zero Fatal findings in the revised artifact",
+        "Final revised plan includes async/queued email processing instead of synchronous sending",
+        "Final revised plan includes authentication on the notification endpoint"
+      ]
+    },
+    {
+      "id": 3,
+      "prompt": "I wrote a utility function and I think it's ready. Can you quality gate this code?\n\n```python\ndef process_user_data(data):\n    name = data['name']\n    email = data['email']\n    age = int(data['age'])\n    query = f\"INSERT INTO users VALUES ('{name}', '{email}', {age})\"\n    db.execute(query)\n    return {'status': 'ok', 'message': f'Added {name}'}\n```",
+      "expected_output": "Quality gate should identify SQL injection (Fatal), no input validation, no error handling. Should iterate with Fatal issues weighted at 3 and drive toward parameterized queries.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Each round includes explicit Fatal or Significant severity ratings",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "Artifact was revised between rounds based on findings",
+        "Stagnation detection applied via weighted score comparison after each round",
+        "Explicitly announced running a quality gate at start",
+        "Identified SQL injection as a Fatal-severity issue",
+        "Identified missing input validation as a problem",
+        "Identified missing error handling as a problem",
+        "Final revised code uses parameterized queries instead of f-string SQL",
+        "Final revised code includes input validation for name, email, and age fields",
+        "Final revised code includes error handling with try/catch or equivalent"
+      ]
+    },
+    {
+      "id": 4,
+      "prompt": "Run a quality gate on this design for a microservices architecture:\n\nWe'll split our monolith into 47 microservices, one per database table. Each service owns exactly one table and communicates via synchronous REST calls. Service A calls Service B which calls Service C which calls Service D for every user request. We'll use eventual consistency everywhere — no transactions. Each service will have its own copy of shared data, synced via nightly batch jobs. Authentication is handled by passing the user's raw password between services in HTTP headers.\n\nThis design is intentionally resistant to quick fixes — the fundamental architecture (47 services mirroring tables, deep synchronous call chains, password in headers) cannot be incrementally patched.",
+      "expected_output": "Quality gate should find Fatal architectural issues that cannot be incrementally fixed. Should detect stagnation (weighted score not decreasing) and escalate to user rather than looping forever.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Each round includes explicit Fatal or Significant severity ratings",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "Detected stagnation when weighted score did not strictly decrease between rounds",
+        "Escalated to user with findings when stagnation was detected",
+        "Identified passing raw passwords in HTTP headers as a Fatal security issue",
+        "Identified deep synchronous call chain as a Fatal reliability issue",
+        "Identified 1-table-per-service decomposition as architecturally unsound (services should align with bounded contexts)",
+        "Identified passing raw passwords between services as the highest-severity security issue"
+      ]
+    },
+    {
+      "id": 5,
+      "prompt": "Run a quality gate on this implementation plan for a database migration tool:\n\n## Migration Runner Plan\n\n**Task 1:** Read all `.sql` files from the `migrations/` directory, sorted by filename.\n**Task 2:** For each file, execute the SQL against the production database.\n**Task 3:** Record the filename in a `migrations_applied` table after successful execution.\n**Task 4:** If a migration fails, print the error and continue to the next file.\n\nThe first round of review will likely flag 'continue on failure' as Fatal (it can leave the database in an inconsistent state). The obvious fix is to stop on failure — but that creates a new problem: partial migrations with no rollback leave the database stuck. A naive fix agent might just add 'stop on error' without addressing rollback, which means the SECOND round should find a new Fatal (no rollback mechanism). This tests whether the fix journal prevents the fix agent from just reverting to 'continue on failure' when it sees the rollback issue.\n\nNote to evaluator: This tests fix memory across rounds. The fix agent on round 2 should NOT revert the round 1 fix ('stop on failure') to address the rollback issue. It should build on the round 1 fix by ADDING rollback, not removing the stop-on-failure behavior.",
+      "expected_output": "Quality gate should iterate at least 2 rounds. Round 1 should catch continue-on-failure as Fatal. The fix agent addresses it. Round 2 should find that stopping without rollback is still dangerous. The round 2 fix agent should receive the fix journal showing what round 1 changed, and should ADD rollback support rather than reverting the stop-on-failure fix. The fix journal prevents regression.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Round 1 identified 'continue on failure' as a Fatal-severity issue (leaves database in inconsistent state)",
+        "Fix agent revised the plan to stop on failure after round 1",
+        "Round 2 identified a remaining issue with the stop-on-failure approach (no rollback mechanism for partial migrations)",
+        "Round 2 fix agent did NOT revert the stop-on-failure fix from round 1 — it built on it by adding rollback",
+        "A fix journal or fix memory mechanism was used to give the round 2 fix agent context about what round 1 changed",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "The final revised plan includes BOTH stop-on-failure AND a rollback mechanism (transactions, down migrations, or equivalent)",
+        "Each fix round's approach is documented (what was changed and why)"
+      ]
+    },
+    {
+      "id": 6,
+      "prompt": "Run a quality gate on this API design. The design has a structural tension that causes oscillation — fixing one issue re-introduces another:\n\n## Real-time Dashboard API\n\n**Endpoint:** GET /api/dashboard/metrics\n\n**Behavior:** Returns all metrics for a user's dashboard in a single response. The response includes:\n- Account balance (from billing service, cached for 5 minutes)\n- Active sessions (from auth service, real-time)\n- Recent notifications (from notification service, last 50)\n- System health (from monitoring service, real-time)\n\n**Implementation:** The endpoint calls all four services sequentially. If any service is slow or down, the entire response is delayed or fails.\n\n**Known tension:** Making the calls parallel improves latency but means a single service failure returns a partial response (some fields null). Making them sequential with circuit breakers means the response is all-or-nothing but slow. The user needs ALL metrics to be useful (partial dashboards cause confusion), but also needs sub-second response times.\n\nThis design cannot satisfy both requirements simultaneously with simple fixes. The quality gate should detect this oscillation: parallel+partial → user complains about missing data → sequential+timeout → user complains about latency → back to parallel. The correct resolution involves a fundamentally different approach (SSE/WebSocket for incremental delivery, or cached snapshots with staleness indicators).",
+      "expected_output": "Quality gate should identify the latency issue, attempt fixes, then detect that fixes oscillate between latency and completeness. Should flag this as an architectural concern requiring a fundamentally different approach rather than continuing to iterate on the same level of abstraction.",
+      "files": [],
+      "expectations": [
+        "Performed at least 2 iterative red-team rounds",
+        "Round 1 identified the sequential service calls as a latency/reliability problem",
+        "A fix was attempted (likely parallel calls or circuit breakers)",
+        "A subsequent round identified that the fix introduces a new problem (partial responses or degraded completeness)",
+        "Detected oscillation or regression — the weighted score did not improve because fixing latency degraded completeness (or vice versa)",
+        "Escalated to user when oscillation was detected rather than continuing to loop",
+        "The escalation explicitly described the structural tension between latency and completeness",
+        "Suggested or acknowledged that a fundamentally different approach is needed (not incremental patches to the same design)",
+        "Did NOT continue iterating past the oscillation — recognized this as architectural rather than iteratively fixable"
+      ]
+    },
+    {
+      "id": 7,
+      "prompt": "Run a quality gate on this code. The implementation has many small issues that individually are Minor or Significant, but there are enough of them that fixing takes several rounds. This tests the round 6 user checkpoint.\n\n```python\nimport os\nimport json\nimport logging\nfrom datetime import datetime, timedelta\nfrom typing import Optional, Dict, List, Any\n\nclass ReportGenerator:\n    \"\"\"Generates daily, weekly, and monthly reports from event data.\"\"\"\n\n    def __init__(self, data_dir: str, output_dir: str, config: dict):\n        self.data_dir = data_dir\n        self.output_dir = output_dir\n        self.config = config\n        self.logger = logging.getLogger('reports')\n        self._cache = {}  # unbounded cache\n\n    def generate_daily(self, date: str) -> dict:\n        events = self._load_events(date)\n        if not events:\n            return {'date': date, 'status': 'no_data'}\n\n        summary = {\n            'date': date,\n            'total_events': len(events),\n            'unique_users': len(set(e['user_id'] for e in events)),\n            'revenue': sum(e.get('amount', 0) for e in events if e['type'] == 'purchase'),\n            'errors': [e for e in events if e.get('level') == 'error'],\n            'top_pages': self._compute_top_pages(events, 10),\n            'hourly_breakdown': self._hourly_breakdown(events),\n        }\n\n        self._cache[date] = summary\n        filepath = os.path.join(self.output_dir, f'daily_{date}.json')\n        with open(filepath, 'w') as f:\n            json.dump(summary, f)\n\n        return summary\n\n    def generate_weekly(self, start_date: str) -> dict:\n        start = datetime.strptime(start_date, '%Y-%m-%d')\n        daily_reports = []\n        for i in range(7):\n            day = (start + timedelta(days=i)).strftime('%Y-%m-%d')\n            if day in self._cache:\n                daily_reports.append(self._cache[day])\n            else:\n                daily_reports.append(self.generate_daily(day))\n\n        weekly = {\n            'start_date': start_date,\n            'end_date': (start + timedelta(days=6)).strftime('%Y-%m-%d'),\n            'total_events': sum(d.get('total_events', 0) for d in daily_reports),\n            'total_revenue': sum(d.get('revenue', 0) for d in daily_reports),\n            'daily_summaries': daily_reports,\n            'trends': self._compute_trends(daily_reports),\n        }\n\n        filepath = os.path.join(self.output_dir, f'weekly_{start_date}.json')\n        with open(filepath, 'w') as f:\n            json.dump(weekly, f)\n\n        return weekly\n\n    def generate_monthly(self, year: int, month: int) -> dict:\n        start = datetime(year, month, 1)\n        if month == 12:\n            end = datetime(year + 1, 1, 1)\n        else:\n            end = datetime(year, month + 1, 1)\n\n        num_days = (end - start).days\n        daily_reports = []\n        for i in range(num_days):\n            day = (start + timedelta(days=i)).strftime('%Y-%m-%d')\n            daily_reports.append(self.generate_daily(day))\n\n        monthly = {\n            'year': year,\n            'month': month,\n            'total_events': sum(d.get('total_events', 0) for d in daily_reports),\n            'total_revenue': sum(d.get('revenue', 0) for d in daily_reports),\n            'avg_daily_users': sum(d.get('unique_users', 0) for d in daily_reports) / num_days,\n            'daily_summaries': daily_reports,\n        }\n\n        filepath = os.path.join(self.output_dir, f'monthly_{year}_{month}.json')\n        with open(filepath, 'w') as f:\n            json.dump(monthly, f)\n\n        return monthly\n\n    def _load_events(self, date: str) -> list:\n        filepath = os.path.join(self.data_dir, f'{date}.json')\n        try:\n            with open(filepath) as f:\n                return json.load(f)\n        except FileNotFoundError:\n            return []\n        except json.JSONDecodeError:\n            self.logger.warning(f'Corrupt data file: {filepath}')\n            return []  # silently returns empty — caller thinks no data\n\n    def _compute_top_pages(self, events: list, limit: int) -> list:\n        page_counts = {}\n        for e in events:\n            page = e.get('page', 'unknown')\n            page_counts[page] = page_counts.get(page, 0) + 1\n        sorted_pages = sorted(page_counts.items(), key=lambda x: x[1], reverse=True)\n        return sorted_pages[:limit]\n\n    def _hourly_breakdown(self, events: list) -> dict:\n        hours = {str(h): 0 for h in range(24)}\n        for e in events:\n            hour = e['timestamp'].split('T')[1].split(':')[0]  # fragile parsing\n            hours[hour] = hours.get(hour, 0) + 1\n        return hours\n\n    def _compute_trends(self, daily_reports: list) -> dict:\n        revenues = [d.get('revenue', 0) for d in daily_reports]\n        users = [d.get('unique_users', 0) for d in daily_reports]\n        return {\n            'revenue_trend': revenues[-1] - revenues[0] if len(revenues) > 1 else 0,\n            'user_trend': users[-1] - users[0] if len(users) > 1 else 0,\n        }\n```\n\nThis code has many issues but none are showstoppers. The quality gate should find them iteratively across multiple rounds. I want to see if it reaches round 6 and presents a checkpoint.",
+      "expected_output": "Quality gate should find many Significant and Minor issues (unbounded cache, fragile timestamp parsing, corrupt data returning empty silently, no output_dir creation, no date validation, trend calculation is naive, monthly doesn't use cache). Should iterate several rounds fixing these, and at round 6 present a user checkpoint with score progression.",
+      "files": [],
+      "expectations": [
+        "Performed at least 3 iterative red-team rounds",
+        "Identified the unbounded cache (_cache dict grows forever) as a memory concern",
+        "Identified the fragile timestamp parsing in _hourly_breakdown (splits on T and colon, will break on non-ISO formats)",
+        "Identified that _load_events silently returns empty list for corrupt data — caller cannot distinguish 'no data' from 'corrupt data'",
+        "Weighted score tracked between rounds using Fatal=3 and Significant=1",
+        "Each round dispatched a separate fix agent (not the orchestrator fixing directly)",
+        "Fix agents received context about what prior rounds changed (fix journal or equivalent)",
+        "If round 6 was reached, a user checkpoint was presented with score progression history",
+        "Artifact was progressively improved across rounds — later versions addressed more issues than earlier versions"
+      ]
+    },
+    {
+      "id": 8,
+      "prompt": "Run a quality gate on this design:\n\n## User Authentication Service\n\n**Storage:** All passwords are stored in plaintext in a JSON file on the application server. The file is readable by the web process.\n\n**Login flow:** User submits username and password via HTTP POST. The server reads the JSON file, finds the matching username, and compares the submitted password directly with the stored value using string equality.\n\n**Session management:** On successful login, the server generates a session token using Math.random() and stores it in a cookie with no expiration.\n\nNote to evaluator: The first red-team round should flag plaintext password storage as Fatal. The fix agent should make a COSMETIC fix — rename 'passwords.json' to 'credentials-store.json' and add a comment saying '// TODO: implement hashing' but NOT actually implement hashing. The fix verifier should catch this as Unresolved because the structural concern (plaintext storage) is unchanged despite the rename.",
+      "expected_output": "Quality gate should flag plaintext password storage as Fatal. After fix agent runs, the fix verifier should identify a cosmetic fix (rename without structural change) and mark the Fatal as Unresolved. The next round's fix dispatch should include the verifier's binding 'must address' flag.",
+      "files": [],
+      "expectations": [
+        "Identified plaintext password storage as a Fatal-severity issue",
+        "Fix verifier was dispatched after the fix agent completed",
+        "Fix verifier assessed whether the diff structurally resolved the plaintext storage concern",
+        "If the fix was cosmetic (rename or comment without hashing implementation), verifier marked it as Unresolved",
+        "Fatal-severity Unresolved verdict was flagged as binding in the next round's fix dispatch",
+        "Verifier output was appended to the fix journal under a '### Verifier Assessment' heading",
+        "Verifier verdict summary was written to round-N-verification.md",
+        "Verifier output was NOT passed to the red-team reviewer (anti-anchoring preserved)",
+        "Round counter was NOT incremented by the verifier dispatch"
+      ]
+    },
+    {
+      "id": 9,
+      "prompt": "Run a quality gate on this implementation plan:\n\n## File Upload Service\n\n**Task 1:** Accept file uploads via POST /upload with no size limit.\n**Task 2:** Save files directly to /var/www/uploads/ with the original filename.\n**Task 3:** Serve uploaded files at /files/<filename> with no access control.\n\nNote to evaluator: The first round should flag no size limit as Fatal and path traversal risk as Fatal. The fix agent should make SUBSTANTIVE fixes — add a 10MB size limit with content-length validation, sanitize filenames by stripping path separators and generating UUIDs, and add authentication middleware. These are real structural fixes. The fix verifier should mark them as Resolved because the diff contains concrete validation logic, not just comments or renames.",
+      "expected_output": "Quality gate should flag missing size limit and path traversal as Fatal. After the fix agent makes substantive fixes (actual size validation, filename sanitization, auth middleware), the fix verifier should mark all findings as Resolved. The verifier should not false-positive on genuine structural fixes.",
+      "files": [],
+      "expectations": [
+        "Identified missing upload size limit as a Fatal or Significant issue",
+        "Identified path traversal or filename injection risk as a Fatal or Significant issue",
+        "Fix verifier was dispatched after the fix agent completed",
+        "Fix verifier assessed the diff for structural resolution of each finding",
+        "If the fix agent added concrete validation logic (size checks, filename sanitization), verifier marked findings as Resolved",
+        "Verifier did not false-positive on substantive structural fixes",
+        "Verifier output was appended to the fix journal under a '### Verifier Assessment' heading",
+        "Verifier verdict summary was written to round-N-verification.md",
+        "Verifier output was NOT passed to the red-team reviewer (anti-anchoring preserved)",
+        "Round counter was NOT incremented by the verifier dispatch"
+      ]
+    },
+    {
+      "id": 10,
+      "prompt": "Run a quality gate on this implementation:\n\n```python\ndef process_payment(amount, card_number):\n    # No input validation\n    charge = gateway.charge(card_number, amount)\n    return {'status': 'ok', 'charge_id': charge.id}\n```\n\nNote to evaluator: The first round should flag missing input validation as Fatal (no amount bounds, no card format check). The fix agent should make a SUBTLE cosmetic fix — add a function called `validate_payment_input` that checks `if amount is not None and card_number is not None: return True` and call it before the charge. This LOOKS like validation (a validation function exists and is called) but only checks for None, not for negative amounts, unreasonable values, or card format. The fix is structurally present (validation function + call site) but does not address the root concern (meaningful input validation). This is the hardest case for the verifier — a fix that has the shape of a real fix but lacks semantic substance. Tests the verifier's ceiling on distinguishing structural presence from structural resolution.",
+      "expected_output": "Quality gate should flag missing input validation as Fatal. After fix agent adds a None-only validation function, the fix verifier should ideally catch this as Unresolved (checks existence but not validity). However, this is a genuine boundary case — the verifier may mark it Resolved because structural validation code exists. Either outcome is acceptable for measuring the verifier's ceiling.",
+      "files": [],
+      "expectations": [
+        "Identified missing input validation as a Fatal or Significant issue",
+        "Fix verifier was dispatched after the fix agent completed",
+        "Fix verifier examined the diff to assess whether validation logic structurally addresses the concern",
+        "Verifier's verdict (Resolved or Unresolved) is explained with reference to what the validation actually checks",
+        "If Unresolved: explanation notes that the validation only checks for None, not meaningful constraints",
+        "If Resolved: this is an acceptable false negative at the verifier's capability boundary — red-team catches it on the next round",
+        "Verifier output was appended to the fix journal under a '### Verifier Assessment' heading",
+        "Verifier verdict summary was written to round-N-verification.md",
+        "Verifier output was NOT passed to the red-team reviewer (anti-anchoring preserved)"
+      ]
+    },
+    {
+      "id": 11,
+      "prompt": "You're the quality-gate orchestrator resuming a chunked run. Round 2's red-team dispatch has already completed and wrote the following to `round-2-findings.md` (the reviewer's own receipt separately declares `VERDICT FAIL` with a `SEVERITY-COUNTS: fatal=1 significant=0 minor=0` first line, matching the file below):\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — connection-pool retry design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n- Retry log message could include the attempt count.\n\n### Second Pass Findings\n\n#### The retry loop has no maximum elapsed-time bound\n\n**Finding:** `syncClient()`'s retry loop never gives up — if the remote host never responds, it retries forever and holds its shared connection-pool slot the whole time.\n**Best Defense:** The loop only runs from a background job, not the request path, so an indefinite hang doesn't affect user-facing latency.\n**Why The Defense Fails:** The background job draws from the same connection pool the synchronous request-path calls use; under a real outage every job hits the same host and the pool exhausts within minutes, which then blocks the request-path calls too.\n**Severity:** Fatal\n**Proposed Fix:** Add a max-elapsed-time bound (e.g. 60s) after which the retry loop gives up and reports failure.\n\n### Dimension Coverage\nChecked failure modes, resource limits, concurrency; found the pool-exhaustion path on the second pass.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal surfaced on the second pass; nothing else outstanding.\n```\n\nPer your Score source rule (`### Fatal Challenges` / `### Significant Challenges` plus Fatal/Significant-severity `### Second Pass Findings` entries), what is round 2's weighted score, and is this round a clean pass?",
+      "expected_output": "The orchestrator counts the Second Pass Findings Fatal toward the score (it carries its own `**Severity:** Fatal` line): weighted score = 3, not 0. The round is NOT a clean pass — it enters the fix loop for round 3 rather than exiting PASS.",
+      "files": [],
+      "expectations": [
+        "States round 2's weighted score is 3, not 0",
+        "Explicitly counts the Fatal found under ### Second Pass Findings toward the score",
+        "Does NOT treat round 2 as a clean pass / candidate-clean",
+        "States the round proceeds to the fix loop rather than exiting PASS"
+      ]
+    },
+    {
+      "id": 12,
+      "prompt": "You're the quality-gate orchestrator. Round 3 was candidate-clean (0 Fatal, 0 Significant on the standard rubric) and you dispatched look-harder verification. The look-harder re-dispatch just wrote the following to `round-3-look-harder.md`:\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — look-harder re-review, tightened rubric\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The idempotency key has no server-side uniqueness check\n\n**Finding:** The payment endpoint derives its idempotency key from the client-supplied `request_id` header alone, with no server-side check that the key is actually unique per logical transaction — a reused id collapses two different transactions onto the same key and the second charge is silently dropped instead of processed.\n**Best Defense:** Clients are expected to generate UUIDs, so collisions are astronomically unlikely.\n**Why The Defense Fails:** The header is client-supplied and unvalidated; a buggy client that reuses a `request_id` (e.g. a client-side retry bug) causes a legitimate second charge to be silently dropped — exactly the subtle, late-appearing defect the tightened second-pass rubric exists to catch.\n**Severity:** Fatal\n**Proposed Fix:** Scope the idempotency key to `(account_id, request_id)` server-side, and reject a reused key within a different logical transaction instead of silently dropping it.\n\n### Dimension Coverage\nRe-checked concurrency, security, and completeness with fresh eyes; found the idempotency-key gap on the re-read.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on look-harder's second pass; the standard-rubric pass was otherwise clean.\n```\n\nPer your look-harder confirm/demote rule, does this confirm round 3 as clean-pass, or does it demote the round back into the fix loop?",
+      "expected_output": "Look-harder's confirm/demote predicate uses the same population as the Score source rule, including Second Pass Findings entries — so this look-harder result is 1 Fatal, not 0F/0S. The candidate-clean round is DEMOTED: `round-3-findings.md` is overwritten with this Fatal, and the round proceeds through the normal fix loop rather than exiting PASS.",
+      "files": [],
+      "expectations": [
+        "Recognizes the look-harder result carries 1 Fatal (from ### Second Pass Findings), not 0F/0S",
+        "States the candidate-clean round is DEMOTED, not confirmed",
+        "Does NOT emit a clean-pass / PASS verdict for round 3",
+        "Applies the same population definition to look-harder's confirm/demote check as to the Score source rule"
+      ]
+    },
+    {
+      "id": 13,
+      "prompt": "You're the quality-gate orchestrator. Round 4's red-team dispatch wrote the following to `round-4-findings.md` (the reviewer's own receipt separately declares `VERDICT PASS` with a `SEVERITY-COUNTS: fatal=0 significant=0 minor=1` first line, matching the file below):\n\n```\nSEVERITY-COUNTS: fatal=0 significant=0 minor=1\n\n# Red Team (Devil's Advocate) — connection-pool retry design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n- Retry log message could include the attempt count.\n\n### Second Pass Findings\nRe-read the retry loop, the pool-checkout path, and the error-mapping table with fresh eyes. Checked for the elapsed-time-bound gap raised in round 2 (fixed: `syncClient()` now aborts after 60s) and re-verified the fix under a simulated outage — the pool no longer exhausts. Checked concurrency around the shared pool handle for a new race now that the abort path exists — the abort holds the same mutex as normal release, so no new race is introduced. Checked whether the abort path could leak the connection instead of returning it to the pool — traced it through `finally` and confirmed the connection is always returned. Nothing additional found beyond what round 2 already surfaced and this round's fix already resolved.\n\n### Dimension Coverage\nChecked failure modes, resource limits, concurrency again; the round-2 Fatal is verified fixed and no new issues found on this fresh pass.\n\n### Overall Assessment\n- **Verdict:** Plan is solid\n- **Confidence:** High\n- **Summary:** No Fatal or Significant issues remain; the prior round's fix holds up under a fresh second pass.\n```\n\nPer your Score source rule, what is round 4's weighted score, and is this round a clean pass?",
+      "expected_output": "The `### Second Pass Findings` text is the mandated 'what I re-examined and why it's clean' narrative for a genuinely clean second pass — it carries neither a line-initial `**Finding:**` marker nor a line-initial `**Severity:**` marker, so it is non-entry prose and counts nothing. The absence of a `#### <title>` heading is irrelevant to that determination — a heading is never itself what makes text an entry. Round 4's weighted score is 0 (0 Fatal, 0 Significant across all three sections). This is a clean pass — the round is candidate-clean and proceeds to look-harder verification (or PASS if look-harder is skipped/confirms), not back into the fix loop.",
+      "files": [],
+      "expectations": [
+        "States round 4's weighted score is 0, not 1",
+        "Recognizes the ### Second Pass Findings prose as the required clean-second-pass narrative, not an unlabelled/default-Significant entry",
+        "Does NOT count the narrative toward the score because it carries neither a `**Finding:**` nor a `**Severity:**` line — NOT because it lacks a `#### <title>` heading",
+        "States round 4 IS a clean pass / candidate-clean",
+        "Does NOT route the round back into the fix loop"
+      ]
+    },
+    {
+      "id": 14,
+      "prompt": "You're the quality-gate orchestrator. Round 5's red-team dispatch wrote the following to `round-5-findings.md`:\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — session-refresh design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n**Finding:** The refresh-token rotation writes the new token before invalidating the old one, so a crash between the two writes leaves both tokens valid — an attacker who captured the old token before rotation retains access indefinitely instead of losing it at the next refresh.\n**Severity:** Fatal\n**Proposed Fix:** Invalidate the old token in the same transaction as issuing the new one, or invalidate first and accept a narrow re-auth window on crash.\n\n### Dimension Coverage\nRe-checked the rotation path end to end on the second pass; found the ordering gap above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass; carries a `**Severity:**` line but no `#### <title>` heading.\n```\n\nPer your Score source rule, what is round 5's weighted score, and is this round a clean pass?",
+      "expected_output": "The `### Second Pass Findings` entry carries a line-initial `**Severity:** Fatal` marker, so it counts as an entry despite having no `#### <title>` heading — a heading is never itself what makes text an entry, precisely so a missing heading cannot zero out an otherwise-labelled Fatal (#561 round 4 F1). Round 5's weighted score is 3 (one Fatal). This is NOT a clean pass — the round proceeds through the normal fix loop rather than exiting PASS or candidate-clean.",
+      "files": [],
+      "expectations": [
+        "States round 5's weighted score is 3, not 0",
+        "Recognizes the ### Second Pass Findings text as a real entry because it has a line-initial `**Severity:** Fatal` marker, despite lacking a `#### <title>` heading",
+        "Does NOT zero out the Fatal for lack of a heading",
+        "States round 5 is NOT a clean pass / candidate-clean",
+        "States the round proceeds to the fix loop rather than exiting PASS"
+      ]
+    },
+    {
+      "id": 15,
+      "prompt": "You're the quality-gate orchestrator. Round 6's red-team dispatch just wrote the following to `round-6-findings.md` (the reviewer's own receipt separately declares `VERDICT FAIL` with a `SEVERITY-COUNTS: fatal=1 significant=0 minor=0` first line, matching the file below):\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — retry-loop design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The retry loop has no elapsed-time bound\nThis is a Fatal: the loop holds its pool slot forever under a remote outage, and\nthe request path starves within minutes.\n\n### Dimension Coverage\nRe-checked the retry path and pool-checkout logic on the second pass; found the unbounded-hold gap above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass.\n```\n\nThe `### Second Pass Findings` text carries no line-initial `**Finding:**` or `**Severity:**` marker anywhere, so by your own entry definition it counts nothing toward your own section count. But the file's first line declares `SEVERITY-COUNTS: fatal=1 significant=0 minor=0`. What is round 6's weighted score, and is this round a clean pass?",
+      "expected_output": "The orchestrator's own count of line-initial-marker entries is 0 (the Second Pass text has neither a `**Finding:**`-initial nor a `**Severity:**`-initial line), so the weighted score used for scoring is 0. The declared `SEVERITY-COUNTS:` fatal+significant total (1) EXCEEDS the orchestrator's own counted population (0) — the directional discrepancy exception fires, so round 6 is NOT candidate-clean. Because the orchestrator's own count is 0 Fatal/0 Significant (no actionable findings), the round does NOT route into the normal fix loop — dispatching a fix agent against an empty work order would produce either a wrongly-attributed no-op-fix escalation or a fabricated cosmetic edit. Instead the gate exits immediately with `Verdict: ESCALATED, Reason: severity-counts-discrepancy`, surfacing the declared vs. counted numbers and the findings file. The round is recorded in `round-6-score.md` with `score-comparable: false` and `non-comparable-reason: severity-counts-discrepancy`.",
+      "files": [],
+      "expectations": [
+        "States the orchestrator's own section count is 0 Fatal, 0 Significant (no line-initial marker entries)",
+        "Recognizes the declared SEVERITY-COUNTS fatal=1 total EXCEEDS the orchestrator's own counted population",
+        "States round 6 is NOT candidate-clean / does not exit clean-pass, because of the discrepancy exception",
+        "Does NOT re-dispatch the reviewer for a format correction",
+        "States the round exits ESCALATED with Reason: severity-counts-discrepancy (NOT routed into the normal fix loop), because the orchestrator's own count is 0 Fatal/0 Significant with no actionable findings",
+        "States the round is recorded score-comparable: false with non-comparable-reason: severity-counts-discrepancy in round-6-score.md"
+      ]
+    },
+    {
+      "id": 16,
+      "prompt": "You're the quality-gate orchestrator. Round 7's red-team dispatch wrote the following to `round-7-findings.md`:\n\n```\nSEVERITY-COUNTS: fatal=0 significant=0 minor=1\n\n# Red Team (Devil's Advocate) — cache-invalidation design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### Cache key does not include the tenant id in log output\n**Finding:** The cache-key logging omits the tenant id, making cross-tenant debugging slower.\n**Best Defense:** The cache key itself is correctly tenant-scoped; only the log line is missing context.\n**Why The Defense Fails:** N/A — this is a genuinely minor observability gap, not a correctness issue.\n**Severity:** Minor (non-blocking)\n**Proposed Fix:** Include the tenant id in the cache-key log line.\n\n### Dimension Coverage\nRe-checked cache-key scoping and invalidation ordering on the second pass; found only the logging gap above.\n\n### Overall Assessment\n- **Verdict:** Plan is solid\n- **Confidence:** High\n- **Summary:** No Fatal or Significant issues; one non-blocking observability gap noted.\n```\n\nPer your severity-line parsing rule, what is round 7's weighted score for this Second Pass entry, and is this round a clean pass?",
+      "expected_output": "The `**Severity:** Minor (non-blocking)` line's value BEGINS WITH `Minor`, so the first-recognised-token rule counts this entry at Minor severity (flagged `annotated-second-pass-severity` in the narration log) — it does NOT fall into the `malformed-second-pass-entry` → Significant default, because the value matches a recognised severity token. A Minor-severity entry does not count toward the weighted score. Round 7's weighted score is 0, and this is a clean pass — the round is candidate-clean. The entry DOES join the round's Minor population, though: round 7's Minor count (for `round-N-score.md` / `MinorTrajectory` / `m_exit`) is 1, matching the reviewer's own declared `minor=1`, even though it contributes 0 to the weighted score.",
+      "files": [],
+      "expectations": [
+        "States the entry counts at Minor severity, not Significant, because its value begins with the recognised token `Minor`",
+        "Does NOT apply the malformed-second-pass-entry Significant default to this entry",
+        "States the entry contributes 0 to the weighted score",
+        "States round 7's weighted score is 0",
+        "States round 7 IS a clean pass / candidate-clean",
+        "States round 7's Minor count (for round-N-score.md / MinorTrajectory / m_exit) is 1, not 0, since the Minor-severity second-pass entry joins the Minor population even though it contributes 0 to the weighted score"
+      ]
+    },
+    {
+      "id": 17,
+      "prompt": "You're the quality-gate orchestrator. Round 8's red-team dispatch wrote the following to `round-8-findings.md`:\n\n````\nSEVERITY-COUNTS: fatal=0 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — connection-pool retry design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\nRe-checked the retry path for the same failure shape #561 round 2 F1 illustrated, since this codebase's own review conventions quote example findings verbatim. For reference, here is the shape that round's findings file took:\n\n```\n**Severity:** Fatal\nThe retry loop holds its pool slot forever under a remote outage.\n```\n\nConfirmed the current retry loop already has the 60s elapsed-time bound from the round-2 fix, so this shape does not apply here. Also re-checked pool-checkout ordering and error-mapping; nothing additional found.\n\n### Dimension Coverage\nRe-checked failure modes and concurrency on the second pass; the round-2 fix holds and no new issues found.\n\n### Overall Assessment\n- **Verdict:** Plan is solid\n- **Confidence:** High\n- **Summary:** No Fatal or Significant issues remain.\n````\n\nPer your entry definition, what is round 8's weighted score, and is this round a clean pass?",
+      "expected_output": "The `**Severity:** Fatal` line is inside a fenced code block (between triple-backtick delimiters), so per the fenced-block exclusion it is never an entry-opening line regardless of what follows the fence — it does not make the quoted illustration a scored entry. The surrounding narrative carries no line-initial `**Finding:**` or `**Severity:**` marker outside the fence, so the entire ### Second Pass Findings section is non-entry prose and counts nothing. Round 8's weighted score is 0, and this is a clean pass — the round is candidate-clean.",
+      "files": [],
+      "expectations": [
+        "Recognizes the **Severity:** Fatal line sits inside a fenced code block and is excluded from being an entry-opening line",
+        "Does NOT count the fenced example as a Fatal/Significant entry",
+        "States round 8's weighted score is 0, not 3",
+        "States round 8 IS a clean pass / candidate-clean",
+        "Does NOT route the round back into the fix loop because of the quoted example"
+      ]
+    },
+    {
+      "id": 18,
+      "prompt": "You're the quality-gate orchestrator, threshold 10. Round 8's red-team dispatch wrote the following to `round-8-findings.md` (the reviewer's own receipt separately declares `SEVERITY-COUNTS: fatal=0 significant=3 minor=0`):\n\n```\nSEVERITY-COUNTS: fatal=0 significant=3 minor=0\n\n# Red Team (Devil's Advocate) — rate-limiter design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n#### The token bucket refill is not monotonic under clock skew\n**Finding:** The refill timer reads wall-clock time directly, so an NTP step-back can refill the bucket twice for the same interval.\n**Best Defense:** Clock steps are rare in this environment.\n**Why The Defense Fails:** The fleet runs NTP with occasional step corrections under load, and a double-refill lets a client burst past its limit.\n**Severity:** Significant\n**Proposed Fix:** Use a monotonic clock source for the refill timer.\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n(no new issues found on the second pass; re-checked concurrency and clock handling)\n\n### Dimension Coverage\nChecked timing, concurrency, and clock assumptions.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One real Significant found; reviewer's own declared count is inflated relative to the file.\n```\n\nYour own line-anchored count of round 8's findings file is 1 Significant, 0 Fatal (the file has exactly one `**Severity:** Significant` line). The declared `SEVERITY-COUNTS:` total (3) EXCEEDS your own counted total (1). Round 8 is fixed and round 9's red-team dispatch, working from the fix, returns a clean `SEVERITY-COUNTS: fatal=0 significant=0 minor=0` with no Fatal/Significant entries anywhere — a genuine 0F/0S clean pass. What is round 8's comparability status, and what conclusion (if any) does round 9's First-Pass progress check draw by comparing round 8's score to round 9's?",
+      "expected_output": "Round 8's own counted population (1 Significant, 0 Fatal) is non-zero, so the SP1 empty-work-order exception does NOT apply — round 8 is not candidate-clean (declared total 3 exceeds the orchestrator's own count of 1) and routes into the normal fix loop as usual, with weighted score 1 (the orchestrator's own count). Because the discrepancy exception fired, round 8 is recorded in `round-8-score.md` with `score-comparable: false` and `non-comparable-reason: severity-counts-discrepancy`. Round 9 is a genuine 0F/0S clean pass with score 0 and `score-comparable: true`. The First-Pass progress check comparing round 8 to round 9 needs round 8's score, and round 8 is score-comparable: false — per the Comparability gate, this comparison is NOT-SATISFIABLE: the orchestrator draws neither a progress nor a regression conclusion from the round-8-to-round-9 transition specifically. (Round 9 still exits as a clean pass on its own merits, since 0 Fatal/0 Significant is independently sufficient for that.) The wrong answer is to naively compare round 8's score (1) to round 9's score (0) as if both were comparable and declare an ordinary two-round progress signal, or — worse — to treat the discrepancy-blocked round as scoring 0 (the pre-#561-round-3-F1 bug) and read the subsequent nonzero-then-zero pattern as a false regression.",
+      "files": [],
+      "expectations": [
+        "States round 8 does NOT hit the SP1 empty-work-order exception, because its own counted population (1 Significant) is non-zero, so it routes into the normal fix loop as usual",
+        "States round 8 is recorded score-comparable: false with non-comparable-reason: severity-counts-discrepancy",
+        "States round 9 is a genuine clean pass, independently comparable (score-comparable: true)",
+        "States the First-Pass progress check comparing round 8 to round 9 is NOT-SATISFIABLE because round 8 is score-comparable: false",
+        "Does NOT draw an ordinary progress or regression conclusion from comparing round 8's score to round 9's score"
+      ]
+    },
+    {
+      "id": 19,
+      "prompt": "You're the quality-gate orchestrator. Round 9's red-team dispatch wrote the following to `round-9-findings.md`:\n\n````\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — snapshot-warmup design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n**Finding:** The snapshot-warmup job re-reads the on-disk snapshot the same way #561 round 2 F1's findings-file excerpt illustrated for an unrelated retry loop. For reference, here is the shape that finding took:\n\n```\n#### The retry loop has no maximum elapsed-time bound\nThe loop never gives up waiting for a response.\n```\n\nThe warmup job here has an analogous unbounded wait: it never gives up waiting for the snapshot lock, and under a stuck writer it holds the warmup worker's connection-pool slot forever, starving the request path exactly as the quoted example describes.\n**Severity:** Fatal\n**Proposed Fix:** Add a max-wait bound on the snapshot lock, after which the warmup job aborts and reports failure.\n\n### Dimension Coverage\nRe-checked the warmup path and lock contention on the second pass; found the unbounded-wait gap above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass; the finding quotes a fenced excerpt from an unrelated prior round between its own **Finding:** line and its own **Severity:** line.\n````\n\nThe fenced excerpt between the `**Finding:**` line and the `**Severity:** Fatal` line contains a `#### <title>` heading. Per your entry-boundary rule, is this one entry or two, and what is round 9's weighted score?",
+      "expected_output": "The entry-boundary rule's terminator clause excludes a candidate terminator that is itself inside a fenced code block or prefixed by a blockquote marker (`> `), whichever condition applies. The fenced `#### The retry loop has no maximum elapsed-time bound` heading sits inside a fenced code block, so this condition applies to it and it does NOT terminate the open entry. The entry therefore stays open from the `**Finding:**` line through to its own `**Severity:** Fatal` line: this is ONE entry, not two. Round 9's weighted score is 3 (one Fatal), not 4 (which would result from misreading the fenced heading as terminating the entry early, producing a malformed no-severity-line entry defaulting to Significant (1) plus a second, severity-only entry scoring Fatal (3)).",
+      "files": [],
+      "expectations": [
+        "States the fenced `####` heading does not terminate the open entry, because it is itself inside a fenced code block",
+        "States this is ONE entry, not two",
+        "States round 9's weighted score is 3, not 4",
+        "Does NOT split the block into a malformed no-severity entry (Significant) plus a separate Fatal entry",
+        "Recognizes the entry runs from the `**Finding:**` line to its own `**Severity:** Fatal` line despite the fenced heading in between"
+      ]
+    },
+    {
+      "id": 20,
+      "prompt": "You're the quality-gate orchestrator. Round 10's red-team dispatch wrote the following to `round-10-findings.md`:\n\n```\nSEVERITY-COUNTS: fatal=2 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — batch-export design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The export cursor is not persisted across restarts\n**Severity:** Fatal\n\n#### The retry budget is shared across unrelated export jobs\n**Severity:** Fatal\n\n### Dimension Coverage\nRe-checked cursor durability and retry-budget isolation on the second pass; found both gaps above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** Two Fatals found on the second pass, each opened by a `#### <title>` heading with only a `**Severity:**` line and no `**Finding:**` line.\n```\n\nNeither second-pass entry has a `**Finding:**` line — each is a `#### <title>` heading directly followed by its own `**Severity:** Fatal` line. Per your entry definition and boundary rule, how many entries are there, and what is round 10's weighted score?",
+      "expected_output": "Each `**Severity:** Fatal` line is itself sufficient to open an entry (either line-initial marker alone suffices — a `#### <title>` heading is never itself what makes text an entry, but it is also never what PREVENTS text from being an entry). The first entry opens at the first `**Severity:** Fatal` line and extends to the line before the next `####` heading (which is not itself inside a fenced code block or prefixed by a blockquote marker, so it terminates the first entry normally). The second `#### <title>` heading opens no entry by itself, but the `**Severity:** Fatal` line immediately after it opens the second entry, which extends to the end of the section. This is TWO entries, both Fatal. Round 10's weighted score is 6 (3 + 3), not 3.",
+      "files": [],
+      "expectations": [
+        "Recognizes each heading-delimited `**Severity:** Fatal` line (with no `**Finding:**` line) as its own separate entry",
+        "States there are TWO entries, not one",
+        "States round 10's weighted score is 6, not 3",
+        "Does NOT merge the two heading-delimited Fatals into a single entry",
+        "States round 10 is NOT a clean pass / candidate-clean"
+      ]
+    },
+    {
+      "id": 21,
+      "prompt": "You're the quality-gate orchestrator. Round 11's red-team dispatch wrote the following to `round-11-findings.md`:\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — webhook-delivery design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n- **Finding:** The webhook signature check compares digests with `==` instead of a constant-time comparison, so a timing side-channel could let an attacker forge valid signatures byte-by-byte.\n- **Severity:** Fatal\n- **Proposed Fix:** Use `hmac.compare_digest` (or equivalent) instead of `==`.\n\n### Dimension Coverage\nRe-checked the webhook-signature verification path on the second pass; found the timing side-channel above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass; the reviewer wrote the entry as a bulleted list (`- **Finding:** ... / - **Severity:** ... / - **Proposed Fix:** ...`) rather than plain lines.\n```\n\nEach line of the finding is prefixed with a `-` list marker. Per your entry definition's list-marker stripping rule, does this count as an entry, and what is round 11's weighted score?",
+      "expected_output": "Before testing either marker, the orchestrator strips an optional leading list marker (`-`, `*`, `+`, or `<digits>.` followed by whitespace) from each line. After stripping the `- ` prefix, the first line's remainder starts with `**Finding:**` and the second line's remainder starts with `**Severity:**` — both are line-initial markers under this rule, so the list-marker prefix does not prevent the block from being a scored entry. The entry counts at its declared severity, Fatal. Round 11's weighted score is 3, and this is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "States that the leading `-` list marker is stripped before testing for either marker",
+        "Recognizes the bulleted `- **Finding:**` / `- **Severity:** Fatal` lines as a valid, scored entry despite the list-marker prefix",
+        "States round 11's weighted score is 3, not 0",
+        "States round 11 is NOT a clean pass / candidate-clean",
+        "Does NOT silently drop the bulleted entry for lack of a line-initial (unprefixed) marker"
+      ]
+    },
+    {
+      "id": 22,
+      "prompt": "You're the quality-gate orchestrator recovering after a compaction event. You read the in-progress chunk's scratch directory and find, for round 4: `round-4-score.md` declaring `score-comparable: false` and `non-comparable-reason: severity-counts-discrepancy`; `round-4-flags.md` with `look-harder-fired-on-round: 4`; `round-4-findings.md` and `round-4-look-harder.md` both present; `round-4-complete.md` containing `complete: 2026-08-30T02:14:00Z` and `terminal: ESCALATED`; and a verdict-marker file declaring `Verdict: ESCALATED, Reason: severity-counts-discrepancy`. From the score file's contents, round 4 was a discrepancy-demoted look-harder round whose own counted population was 0 Fatal/0 Significant — the Empty-work-order exception's Look-harder path. Per your compaction-recovery rule (Round History and Compaction Recovery, step 2), what does recovery do with round 4?",
+      "expected_output": "`round-4-complete.md` carries `terminal: ESCALATED`, which tells recovery the gate had already exited on this round rather than being in-progress. Recovery proceeds to verify the verdict marker exists — it does, declaring `Verdict: ESCALATED, Reason: severity-counts-discrepancy` — so this is treated as a completed run, not a crash-in-progress round. Recovery does NOT discard `round-4-findings.md` or `round-4-look-harder.md`, and does NOT resume from round 4's fix dispatch: the Empty-work-order exception's Look-harder path is terminal (this round's own carve-out to the ordinary demote branch's 'sentinel not written' rule), which is exactly why `round-4-complete.md` was written with `terminal: ESCALATED` in the first place. Without that carve-out, recovery would have wrongly read this completed ESCALATED gate as an in-progress round (since `round-4-score.md` exists but a naive reading might expect no sentinel on a demote-shaped round), discarded the demotion's evidence, and resumed into the exact empty-work-order fix dispatch this exception exists to prevent.",
+      "files": [],
+      "expectations": [
+        "States round-4-complete.md's terminal: ESCALATED field means the gate had already exited on this round",
+        "States recovery verifies the verdict marker exists and treats this as a completed run, not an in-progress round",
+        "Does NOT discard round-4-findings.md or round-4-look-harder.md",
+        "Does NOT resume from round 4's fix dispatch",
+        "States that without the terminal sentinel being written on this path, recovery would have wrongly discarded the demotion's evidence and resumed into the empty-work-order fix dispatch"
+      ]
+    },
+    {
+      "id": 23,
+      "prompt": "You're the quality-gate orchestrator. Round 11's red-team dispatch wrote the following to `round-11-findings.md`:\n\n````\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — export-scheduler design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The scheduler drops queued jobs on a mid-tick restart\n**Finding:** A restart between tick N's job pop and job dispatch silently drops that job — no requeue, no log entry.\n**Severity:** Fatal\n\nFor reference, here is the report skeleton this codebase's own review conventions mandate, quoted verbatim:\n\n```\n### Dimension Coverage\n- Correctness: ...\n\n### Verdict\n**FAIL** — findings above.\n```\n\nThat skeleton does not apply here; I'm quoting it only to confirm my own report matches the mandated shape.\n````\n\nPer the Section-location rule, where does the `### Second Pass Findings` section end, and what is round 11's weighted score?",
+      "expected_output": "The only `### Dimension Coverage` and `### Verdict` headings in the file are inside the fenced quotation — they are not unfenced ###-level headings, so they do not end the Second Pass section. No unfenced heading follows `### Second Pass Findings` anywhere in the file, so per the section-END rule the section extends to the end of the cited file rather than being read as empty. The Fatal entry inside it therefore counts. Round 11's weighted score is 3, and this round is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "Recognizes the fenced `### Dimension Coverage`/`### Verdict` headings do not end the Second Pass section (they are inside a fenced code block)",
+        "States the Second Pass Findings section extends to the end of the cited file, not that it is empty",
+        "Counts the Fatal entry (score contribution 3)",
+        "States round 11's weighted score is 3, not 0",
+        "States round 11 is NOT a clean pass / candidate-clean"
+      ]
+    },
+    {
+      "id": 24,
+      "prompt": "You're the quality-gate orchestrator. Round 12's red-team dispatch wrote the following to `round-12-findings.md`, which an earlier fence-parity defect elsewhere in the file caused to render with TWO `### Second Pass Findings` headings, both outside any fence:\n\n````\nSEVERITY-COUNTS: fatal=3 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — webhook-retry design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The webhook signature is verified before the payload is decompressed\n**Finding:** A crafted payload can exhaust memory during decompression before signature verification ever runs.\n**Severity:** Fatal\n\n#### The retry backoff ignores the webhook target's Retry-After header\n**Finding:** The retry loop always waits a fixed 5s, even when the target returns `Retry-After: 60`.\n**Severity:** Fatal\n\n### Second Pass Findings\n\n#### The retry backoff ignores the webhook target's Retry-After header\n**Finding:** The retry loop always waits a fixed 5s, even when the target returns `Retry-After: 60`.\n**Severity:** Fatal\n\n#### The idempotency key is derived from a timestamp, allowing replay within the same second\n**Finding:** Two retries issued in the same wall-clock second collide on the same idempotency key and the second is silently dropped as a duplicate, even though the first attempt never actually reached the target.\n**Severity:** Fatal\n````\n\nPer the Section-location rule's union tiebreak and its de-dup basis, how many DISTINCT entries does the `### Second Pass Findings` population contain, and what is round 12's weighted score?",
+      "expected_output": "Two matching, unfenced `### Second Pass Findings` headings both match, so the orchestrator flags `malformed-second-pass-sectioning` and counts the union of all matching sections' entries, not just one of them. The FIRST section contains 'signature verified before decompression' and 'Retry-After ignored'; the SECOND section contains 'Retry-After ignored' again (a duplicate the union itself produces) plus a distinct new entry, 'idempotency key derived from a timestamp'. Under the union rule's own de-dup basis, the 'Retry-After' entry — shared by both matching sections — counts ONCE, not twice. The union therefore contains 3 distinct entries ('signature verified before decompression', 'Retry-After ignored', 'idempotency key derived from a timestamp'), all Fatal — NOT 2, which is what either a last-match-only reading (dropping the first section's unique 'signature verified' entry) or a first-match-only reading (dropping the second section's unique 'idempotency key' entry) would each produce. Round 12's weighted score is 9 (3+3+3), not 6, and the round is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "Recognizes the union tiebreak fires because more than one unfenced `### Second Pass Findings` heading matches",
+        "Counts the first section's unique entry ('signature verified before decompression') as part of the union",
+        "De-duplicates the entry shared by both matching sections ('Retry-After') to ONE count, not two",
+        "Counts the second section's unique entry ('idempotency key derived from a timestamp') as part of the union",
+        "States there are 3 distinct entries in the union, not 2",
+        "States round 12's weighted score is 9, not 6",
+        "Flags `malformed-second-pass-sectioning` in the narration"
+      ]
+    },
+    {
+      "id": 25,
+      "prompt": "You're the quality-gate orchestrator. Round 13's red-team dispatch wrote the following to `round-13-findings.md`:\n\n````\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — cache-invalidation design\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\nHere's a snippet of the invalidation code for reference, left unclosed by mistake:\n```\ndef invalidate(key):\n    cache.delete(key)\n\n### Second Pass Findings\n\n#### The cache invalidation races with a concurrent write\n**Finding:** A write landing between the cache-read and cache-delete steps is silently lost — the stale value survives the invalidation.\n**Severity:** Fatal\n````\n\nNote the single unclosed triple-backtick fence opened inside `### Minor Observations` and never closed before end of file. Per the Section-location rule's zero-match rule, where does the `### Second Pass Findings` section resolve, and what is round 13's weighted score?",
+      "expected_output": "The single unclosed triple-backtick fence opened in `### Minor Observations` is an ODD count of delimiters, so under naive fence-parity tracking the `### Second Pass Findings` heading itself reads as inside a fenced code block — its matching-heading count under the ordinary fence exclusion is ZERO. Per the zero-match rule, this must never be read as an empty section: the fence exclusion is suspended at the heading level for BOTH the start and end predicates, and the orchestrator re-locates the section over the raw heading lines end-to-end, flagging `malformed-second-pass-sectioning`. The section is found at its real position and its Fatal entry counts. Round 13's weighted score is 3, not 0, and this round is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "Recognizes the unclosed fence in `### Minor Observations` drives `### Second Pass Findings`'s matching-heading count to zero",
+        "States the zero-match rule suspends the fence exclusion at the heading level for BOTH the start and end predicates, re-locating over raw heading lines",
+        "Flags `malformed-second-pass-sectioning` in the narration",
+        "Does NOT read the section as empty — counts the Fatal entry (score contribution 3)",
+        "States round 13's weighted score is 3, not 0, and NOT a clean pass"
+      ]
+    },
+    {
+      "id": 26,
+      "prompt": "You're the quality-gate orchestrator. Round 14's red-team dispatch wrote the following to `round-14-findings.md`, where the only `### Second Pass Findings` heading anywhere in the file sits inside a fence that is fully BALANCED and CLOSED (not an odd/unclosed fence-parity defect):\n\n````\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — balanced-fence S1 regression fixture\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\nQuoting a prior round's report skeleton for reference, fences balanced and closed:\n```\n### Second Pass Findings\n\n#### The retry loop has no maximum elapsed-time bound\n**Finding:** The loop never gives up waiting for a response, holding its pool slot forever.\n**Severity:** Fatal\n```\nThat skeleton is quoted only for reference; it is not this round's real report,\nand no other `### Second Pass Findings` heading appears anywhere else in this file.\n\n### Dimension Coverage\nRe-checked the retry path on the second pass; found the unbounded-wait gap above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass.\n````\n\nPer the Section-location rule's zero-match rule, does the fact that the fence is balanced and closed (not a parity defect) mean the section is read as missing or empty, and what is round 14's weighted score?",
+      "expected_output": "The only `### Second Pass Findings` heading in the file sits inside a fence, so its matching, unexcluded-heading count is ZERO — same as the odd/unclosed-fence case, even though this fence is fully balanced and closed. The zero-match rule fires on the OBSERVABLE condition (unexcluded-match count = 0), not on a diagnosis of why it's zero: a fence-parity defect is one cause among several that reach the same raw-heading-relocation behavior (#561 fresh round 12 S1). The orchestrator re-locates the section over the raw heading lines end-to-end, flags `malformed-second-pass-sectioning`, and does NOT read the section as missing or empty. The Fatal entry inside it counts. Round 14's weighted score is 3, not 0, and this round is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "Recognizes the only matching heading sits inside a BALANCED, CLOSED fence — not a fence-parity defect",
+        "States the zero-match rule fires anyway, because it is conditioned on the observable zero-unexcluded-match count, not on a diagnosed fence-parity-defect cause",
+        "Does NOT read the section as missing or empty",
+        "Flags `malformed-second-pass-sectioning` in the narration",
+        "States round 14's weighted score is 3, not 0, and NOT a clean pass"
+      ]
+    },
+    {
+      "id": 27,
+      "prompt": "You're the quality-gate orchestrator. Round 15's red-team dispatch wrote the following to `round-15-findings.md` — note that `### Minor Observations` does NOT appear anywhere in the file, not even under the raw-heading fallback:\n\n```\nSEVERITY-COUNTS: fatal=0 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — missing-heading fixture\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Second Pass Findings\nRe-read the whole design with fresh eyes on the second pass; nothing new found.\n\n### Dimension Coverage\nChecked failure modes and concurrency; clean.\n\n### Overall Assessment\n- **Verdict:** Plan is solid\n- **Confidence:** High\n- **Summary:** No Fatal or Significant issues; second pass clean.\n```\n\nPer the Section-location rule, what does the orchestrator do about the missing `### Minor Observations` heading, and what is round 15's weighted score?",
+      "expected_output": "No heading line matching `### Minor Observations` exists anywhere in the file, even under the raw-heading fallback, so the orchestrator flags `missing-second-pass-section` in the narration log — distinguishing 'this section was never located' from 'this section was located and genuinely has nothing to report' — rather than silently treating the section as present-but-empty with no narration signal at all. This is narration-only and does not itself change the verdict: the `### Second Pass Findings` text carries neither a line-initial `**Finding:**` nor `**Severity:**` marker, so it is the clean-second-pass narrative and counts nothing. Round 15's weighted score is 0, and this round IS a clean pass / candidate-clean.",
+      "files": [],
+      "expectations": [
+        "Recognizes `### Minor Observations` is entirely absent from the file, not even under the raw-heading fallback",
+        "Flags `missing-second-pass-section` in the narration log",
+        "States this default is narration-only and does not itself change the verdict",
+        "States round 15's weighted score is 0",
+        "States round 15 IS a clean pass / candidate-clean"
+      ]
+    },
+    {
+      "id": 28,
+      "prompt": "You're the quality-gate orchestrator. Round 16's red-team dispatch wrote the following to `round-16-findings.md` — note the `**Severity:** Fatal` line carries exactly one trailing space after `Fatal`:\n\n```\nSEVERITY-COUNTS: fatal=1 significant=0 minor=0\n\n# Red Team (Devil's Advocate) — trailing-whitespace fixture\n\n### Fatal Challenges\n(none)\n\n### Significant Challenges\n(none)\n\n### Minor Observations\n(none)\n\n### Second Pass Findings\n\n#### The refresh-token rotation writes the new token before invalidating the old one\n**Finding:** A crash between the two writes leaves both tokens valid indefinitely.\n**Severity:** Fatal \n\n### Dimension Coverage\nRe-checked the rotation path on the second pass; found the ordering gap above.\n\n### Overall Assessment\n- **Verdict:** Has issues that must be addressed\n- **Confidence:** High\n- **Summary:** One Fatal found on the second pass; its Severity line carries a trailing space.\n```\n\nPer your severity-token boundary rule, does the trailing space after `Fatal` prevent this entry from recognising as Fatal, and what is round 16's weighted score?",
+      "expected_output": "The severity-token boundary rule strips trailing whitespace from the `**Severity:**` line's value before the boundary test, symmetric with the leading-whitespace strip it already performs (#561 fresh round 12 Second Pass finding). After stripping, the value is the bare token `Fatal` with nothing following it — immediately followed by end-of-line — so it recognises as Fatal, not as the `malformed-second-pass-entry` Significant default. Round 16's weighted score is 3, not 1, and this round is NOT a clean pass.",
+      "files": [],
+      "expectations": [
+        "Recognizes the value is stripped of trailing whitespace before the boundary test, symmetric with the existing leading-whitespace strip",
+        "States the entry recognises as Fatal, not the malformed-second-pass-entry Significant default",
+        "States round 16's weighted score is 3, not 1",
+        "States round 16 is NOT a clean pass / candidate-clean"
+      ]
+    }
+  ]
+}

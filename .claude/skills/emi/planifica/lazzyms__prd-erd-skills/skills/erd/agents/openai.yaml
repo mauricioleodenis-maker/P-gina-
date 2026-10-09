@@ -1,0 +1,4 @@
+interface:
+  display_name: "Engineering Requirements (ERD)"
+  short_description: "Turn an approved PRD into a technical ERD"
+  default_prompt: "Use $erd to translate an approved PRD into an Engineering Requirements Document."

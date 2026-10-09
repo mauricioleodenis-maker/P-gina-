@@ -1,0 +1,11 @@
+.DS_Store
+*.swp
+*~
+node_modules/
+.claude/
+.harness/
+.harness-*/
+.opc-*/
+.validation-corpus/
+docs/*.mp4
+docs/*.gif

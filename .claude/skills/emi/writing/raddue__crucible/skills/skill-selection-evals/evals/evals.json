@@ -1,0 +1,821 @@
+{
+  "skill_name": "skill-selection-evals",
+  "eval_type": "selection",
+  "evals": [
+    {
+      "id": "test-methodology-direct-01",
+      "dimension": "direct",
+      "boundary": "test-methodology",
+      "prompt": "I just changed the auth module, make sure existing tests still make sense",
+      "expected_skill": "test-coverage",
+      "common_mistakes": [
+        "test-driven-development",
+        "verify"
+      ],
+      "context": "Code already exists and was recently modified. Tests exist but may be stale after the change.",
+      "reasoning": "TDD is for new code written test-first. Verify checks claims of completion. Test-coverage audits existing tests after code changes to find staleness, needed updates, or removal.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "test-methodology-direct-02",
+      "dimension": "direct",
+      "boundary": "test-methodology",
+      "prompt": "I need to implement a Luhn validator for credit card numbers. Let's build it with tests.",
+      "expected_skill": "test-driven-development",
+      "common_mistakes": [
+        "test-coverage",
+        "build"
+      ],
+      "context": "New feature, no existing code. User wants test-first development.",
+      "reasoning": "This is greenfield implementation where no code exists yet. 'Build it with tests' signals test-first approach. TDD writes failing tests before implementation. Test-coverage only applies when tests already exist. Build would skip the test-first discipline.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "test-methodology-direct-03",
+      "dimension": "direct",
+      "boundary": "test-methodology",
+      "prompt": "I just finished implementing the rate limiter. Try to break it \u2014 find edge cases I missed.",
+      "expected_skill": "adversarial-tester",
+      "common_mistakes": [
+        "test-coverage",
+        "test-driven-development",
+        "red-team"
+      ],
+      "context": "Implementation is complete. User wants adversarial testing to find unknown failure modes.",
+      "reasoning": "Implementation is done \u2014 this is not TDD (code exists) or test-coverage (not auditing existing tests for staleness). Adversarial-tester reads implementation diffs and writes tests designed to make it break. Red-team reviews artifacts for design flaws, not implementation edge cases.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "test-methodology-negative-01",
+      "dimension": "negative",
+      "boundary": "test-methodology",
+      "prompt": "Write tests for the parser I just built last week. It handles JSON, YAML, and TOML.",
+      "expected_skill": "test-coverage",
+      "common_mistakes": [
+        "test-driven-development"
+      ],
+      "context": "Code was built last week. Tests need to be added after the fact. This is retroactive test addition, not test-first development.",
+      "reasoning": "Despite saying 'write tests', this is NOT TDD. The parser already exists \u2014 TDD requires writing tests BEFORE implementation. Test-coverage audits and adds tests for existing code. The key signal is 'I just built' (past tense) \u2014 the code-before-test ship has sailed.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "test-methodology-context-01",
+      "dimension": "context-dependent",
+      "boundary": "test-methodology",
+      "prompt": "Write tests for the checkout flow.",
+      "expected_skill": "test-coverage",
+      "common_mistakes": [
+        "test-driven-development"
+      ],
+      "context": "The checkout flow already exists in production. This is adding test coverage to existing, working code.",
+      "reasoning": "Same verb ('write tests') but context determines the skill. When the code already exists and is in production, this is test-coverage (audit and add tests for existing code). If the checkout flow did not exist yet, this would be TDD. The distinguishing signal is whether code exists.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "review-direction-direct-01",
+      "dimension": "direct",
+      "boundary": "review-direction",
+      "prompt": "I'm done with the feature branch. Can you review my changes before I create a PR?",
+      "expected_skill": "temper",
+      "common_mistakes": [
+        "review-feedback",
+        "quality-gate"
+      ],
+      "context": "User is requesting a review of their own work before submission. No external feedback has been received.",
+      "reasoning": "Code-review is for when you want your work reviewed \u2014 requesting a review. Review-feedback is for when you have RECEIVED review comments and need to process them. The direction is outbound (requesting review), not inbound (receiving feedback).",
+      "difficulty": "easy"
+    },
+    {
+      "id": "review-direction-direct-02",
+      "dimension": "direct",
+      "boundary": "review-direction",
+      "prompt": "I got 6 comments on my PR from the tech lead. Help me work through them.",
+      "expected_skill": "review-feedback",
+      "common_mistakes": [
+        "temper"
+      ],
+      "context": "User has received review feedback on a PR and needs to process and respond to the comments.",
+      "reasoning": "Review-feedback handles inbound review comments \u2014 analyzing them for technical merit, identifying unclear or contradictory items, and determining the right response. Code-review would be requesting a new review, which is the wrong direction.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "review-direction-negative-01",
+      "dimension": "negative",
+      "boundary": "review-direction",
+      "prompt": "The senior dev left some comments on my PR saying 'looks good, just clean up the naming'. Help me with the review.",
+      "expected_skill": "review-feedback",
+      "common_mistakes": [
+        "temper"
+      ],
+      "context": "Despite using the word 'review', the user has RECEIVED feedback and needs to process it. The feedback is inbound.",
+      "reasoning": "The word 'review' appears but the direction is inbound \u2014 the user received comments and needs to process them. Review-feedback handles this. Code-review would be wrong because the user is not requesting a fresh review of their code.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "review-direction-context-01",
+      "dimension": "context-dependent",
+      "boundary": "review-direction",
+      "prompt": "Review this code.",
+      "expected_skill": "temper",
+      "common_mistakes": [
+        "review-feedback",
+        "audit"
+      ],
+      "context": "User is presenting their own code and asking for a review. No prior feedback exists \u2014 this is a request for review.",
+      "reasoning": "Same word 'review' but context determines direction. Here the user is requesting a review (outbound) \u2014 temper. If the user had said 'I got a review on this code, help me address it', the direction would be inbound \u2014 review-feedback. Audit would be wrong because the user is asking for a targeted review, not a multi-lens adversarial subsystem audit.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "adversarial-scope-direct-01",
+      "dimension": "direct",
+      "boundary": "adversarial-scope",
+      "prompt": "I just finished the design doc for the new notification service. Red-team it.",
+      "expected_skill": "red-team",
+      "common_mistakes": [
+        "audit",
+        "quality-gate",
+        "siege"
+      ],
+      "context": "Single artifact (design doc) ready for adversarial review. Not a full codebase review, not a security audit.",
+      "reasoning": "Red-team is for adversarial review of a single artifact (design doc, plan, code, PR). Audit reviews existing codebase subsystems through parallel lenses. Quality-gate iterates with fixes until clean. Siege is specifically security-focused. The key signal is 'red-team it' on a single artifact.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "adversarial-scope-direct-02",
+      "dimension": "direct",
+      "boundary": "adversarial-scope",
+      "prompt": "The payment module has been in production for a year. I want a thorough review of the whole subsystem \u2014 correctness, robustness, architecture, everything.",
+      "expected_skill": "audit",
+      "common_mistakes": [
+        "red-team",
+        "temper",
+        "prospector"
+      ],
+      "context": "Existing codebase subsystem, multi-dimensional review requested. Not a single artifact \u2014 an entire subsystem with multiple files.",
+      "reasoning": "Audit dispatches parallel analysis agents across four lenses (correctness, robustness, consistency, architecture) on an existing subsystem. Red-team reviews a single artifact. Code-review is lighter-weight. Prospector looks for architectural friction across the whole codebase, not a specific subsystem.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "adversarial-scope-negative-01",
+      "dimension": "negative",
+      "boundary": "adversarial-scope",
+      "prompt": "We just assembled the full feature \u2014 auth, API routes, database migrations, and frontend. Hunt for cross-component bugs before we ship.",
+      "expected_skill": "inquisitor",
+      "common_mistakes": [
+        "audit",
+        "red-team",
+        "adversarial-tester"
+      ],
+      "context": "Full feature assembled from multiple components. Need to find integration issues across component boundaries, not review a single artifact or existing subsystem.",
+      "reasoning": "Inquisitor runs 5 parallel adversarial dimensions against the complete implementation diff to find cross-component bugs. Audit reviews existing subsystems (this is new code). Red-team reviews single artifacts. Adversarial-tester finds edge cases in a single implementation, not cross-component integration issues.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "adversarial-scope-context-01",
+      "dimension": "context-dependent",
+      "boundary": "adversarial-scope",
+      "prompt": "Audit this for security vulnerabilities.",
+      "expected_skill": "siege",
+      "common_mistakes": [
+        "audit",
+        "red-team"
+      ],
+      "context": "Despite using the word 'audit', the focus is specifically on security. This narrows the scope from general audit to security audit.",
+      "reasoning": "Siege is the security-specific audit \u2014 dispatches 6 parallel agents across attacker perspectives, iterates until zero Critical + zero High findings. General audit covers correctness, robustness, consistency, architecture \u2014 broader but not security-deep. The 'security vulnerabilities' qualifier triggers siege over audit.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "completion-claims-direct-01",
+      "dimension": "direct",
+      "boundary": "completion-claims",
+      "prompt": "I just ran the tests and they all pass \u2014 here's the output:\n\n```\n$ npm test\n  12 passing (340ms)\n  0 failing\n```\n\nFeature works end-to-end. Let's create a PR and merge.",
+      "expected_skill": "finish",
+      "common_mistakes": [
+        "verify",
+        "temper"
+      ],
+      "context": "User has provided fresh test evidence in the current message. Verification is satisfied. This is now an integration decision.",
+      "reasoning": "Finish guides completion \u2014 presenting options for merge, PR, or cleanup. Verify gathers evidence, but the user just provided fresh evidence (test output in the current message). The remaining decision is how to integrate the work, which is finish's domain.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "completion-claims-direct-02",
+      "dimension": "direct",
+      "boundary": "completion-claims",
+      "prompt": "I think the migration is done. Can you confirm everything actually works?",
+      "expected_skill": "verify",
+      "common_mistakes": [
+        "finish",
+        "test-coverage"
+      ],
+      "context": "User is uncertain about completion. They need evidence, not an integration decision.",
+      "reasoning": "Verify runs verification commands and confirms output before any success claims \u2014 evidence before assertions. The user says 'I think' (uncertain) and 'confirm everything works' (needs evidence). Finish would be premature \u2014 the user has not yet confirmed the work is correct.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "completion-claims-negative-01",
+      "dimension": "negative",
+      "boundary": "completion-claims",
+      "prompt": "Everything looks good to me. Ship it!",
+      "expected_skill": "verify",
+      "common_mistakes": [
+        "finish"
+      ],
+      "context": "User claims completion but has not provided evidence of running tests or verification commands in the current session. 'Looks good to me' is a subjective claim, not verified evidence.",
+      "reasoning": "Despite the user's confidence, verify requires fresh evidence in the current session. 'Looks good to me' is not the same as 'tests pass and here is the output'. Verify must run before finish \u2014 the completion claim needs evidence backing.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "completion-claims-context-01",
+      "dimension": "context-dependent",
+      "boundary": "completion-claims",
+      "prompt": "Tests pass, CI is green, and the PR has two approvals. What now?",
+      "expected_skill": "finish",
+      "common_mistakes": [
+        "verify"
+      ],
+      "context": "All verification signals present: tests pass, CI green, peer approvals received. The user is asking what the next step is \u2014 this is an integration decision.",
+      "reasoning": "Same completion-area prompt as other evals in this boundary, but context includes strong evidence (tests, CI, approvals). With evidence satisfied, the question 'what now?' is an integration decision \u2014 finish. If evidence were missing, verify would be correct. The distinguishing context is the presence of multiple verification signals.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "bug-handling-direct-01",
+      "dimension": "direct",
+      "boundary": "bug-handling",
+      "prompt": "This endpoint returns 500 sometimes. Here's the error log showing a NullPointerException in the order handler.",
+      "expected_skill": "debugging",
+      "common_mistakes": [
+        "verify",
+        "audit"
+      ],
+      "context": "Active failure with error evidence. This is a bug to investigate and fix, not a completion check or subsystem review.",
+      "reasoning": "Debugging handles active failures \u2014 bugs, test failures, unexpected behavior. The user has an error log showing a specific failure. Verify checks completion claims (no active failure here). Audit reviews subsystems (this is a specific bug, not a broad review).",
+      "difficulty": "easy"
+    },
+    {
+      "id": "bug-handling-direct-02",
+      "dimension": "direct",
+      "boundary": "bug-handling",
+      "prompt": "The tests pass but users are reporting that search results are wrong. Something is off.",
+      "expected_skill": "debugging",
+      "common_mistakes": [
+        "verify",
+        "test-coverage"
+      ],
+      "context": "Tests pass but behavior is wrong. This is a bug \u2014 the tests are insufficient or the bug is in an untested path.",
+      "reasoning": "Despite tests passing, there is unexpected behavior (wrong search results). This is a debugging scenario \u2014 investigate the root cause. Verify would just re-run the (already passing) tests. Test-coverage would audit test quality but not investigate the specific user-reported issue.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "bug-handling-context-01",
+      "dimension": "context-dependent",
+      "boundary": "bug-handling",
+      "prompt": "Something is wrong with the caching system.",
+      "expected_skill": "debugging",
+      "common_mistakes": [
+        "audit",
+        "verify"
+      ],
+      "context": "User reports something is wrong \u2014 this is an active problem, not a proactive review. The phrasing indicates a current issue, not a desire for broad subsystem review.",
+      "reasoning": "'Something is wrong' signals an active problem \u2014 debugging territory. If the user said 'review the caching system for potential issues', that would be audit (proactive review). If they said 'verify the caching system works', that would be verify. The 'wrong' qualifier indicates a bug to investigate.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "cascade-ordering-01",
+      "dimension": "cascade",
+      "boundary": "review-direction",
+      "prompt": "I want to add a webhook retry system with exponential backoff. Let's design it and build it properly.",
+      "expected_skill": [
+        "design",
+        "build"
+      ],
+      "common_mistakes": [
+        "build",
+        "planning"
+      ],
+      "context": "New feature requiring both design exploration and implementation. The user wants the full pipeline. Tests design-before-build ordering discipline.",
+      "reasoning": "Design must come before build \u2014 'design it and build it' is the correct sequence. Skipping design and going straight to build violates the design-before-build discipline. Planning alone is insufficient \u2014 it produces a task list but not the design exploration. The correct cascade is design (explored questions, investigated options) then build (implementation pipeline).",
+      "difficulty": "medium"
+    },
+    {
+      "id": "cascade-ordering-02",
+      "dimension": "cascade",
+      "boundary": "bug-handling",
+      "prompt": "The payment processor is double-charging some customers. Fix it and make sure it's actually fixed before we deploy.",
+      "expected_skill": [
+        "debugging",
+        "verify"
+      ],
+      "common_mistakes": [
+        "debugging",
+        "finish"
+      ],
+      "context": "Active bug requiring investigation, fix, and verified confirmation before deployment.",
+      "reasoning": "Debugging investigates root cause and implements fix. Verify then confirms the fix actually works with fresh evidence. Skipping verify after debugging and going straight to finish (deploy) risks deploying an unverified fix. The correct cascade is debugging (find and fix) then verify (prove it works).",
+      "difficulty": "medium"
+    },
+    {
+      "id": "cascade-ordering-03",
+      "dimension": "cascade",
+      "boundary": "test-methodology",
+      "prompt": "I need to add real-time notifications to the dashboard. Let's think through the design, plan the tasks, then build it.",
+      "expected_skill": [
+        "design",
+        "planning",
+        "build"
+      ],
+      "common_mistakes": [
+        "build",
+        "design"
+      ],
+      "context": "User explicitly requests the full pipeline: design exploration, task planning, then implementation.",
+      "reasoning": "The user spells out the three-phase cascade: design (explore options, investigate questions), planning (break into tasks with ordering), build (implement). Skipping to build alone misses design exploration. Design alone misses the planning phase that produces the task breakdown. The full sequence ensures each phase informs the next.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "build-routing-01",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Write a spec for a webhook retry queue, implement it, and open a PR.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "spec",
+        "design"
+      ],
+      "context": "Build-shaped: spec + implement + ship in one prompt.",
+      "reasoning": "Combination of spec + implement + PR is the canonical build-shaped dispatch per #174 routing guidance. /build owns the full design-through-execution pipeline. A raw Task subagent or /spec alone would skip build's QG/red-team/innovate phases.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-02",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Spec out the new audit-log endpoint, implement it with tests, and push a PR.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "spec",
+        "test-driven-development"
+      ],
+      "context": "Build-shaped: spec + implement + PR, with test emphasis.",
+      "reasoning": "All three build-triggering components are present: spec, implement, PR. /build internally dispatches design/spec/planning/TDD/QG \u2014 invoking TDD or spec directly would bypass build's orchestration.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-03",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "I need a spec plus working implementation plus a PR for the CSV importer feature.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "spec",
+        "planning"
+      ],
+      "context": "Build-shaped: explicit spec + implement + PR combination, restated form.",
+      "reasoning": "The 'spec + implementation + PR' triplet is the exact signature /build was designed to orchestrate per Part 1 of getting-started. Dispatching spec or planning standalone drops build's quality gates.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-04",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Implement a rate limiter for the public API and open a PR.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "test-driven-development"
+      ],
+      "context": "Build-shaped: implement + PR in one prompt.",
+      "reasoning": "Implement + PR together is a build-shaped dispatch \u2014 the work crosses design, test-first, QG, and PR creation, which are all orchestrated inside /build. A raw Task subagent for 'just implement it' skips QG.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-05",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Implement SSO login via OIDC and open a PR when it's ready.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "design"
+      ],
+      "context": "Build-shaped: implement + PR, non-trivial feature.",
+      "reasoning": "Non-trivial feature work that explicitly ends in a PR is the canonical /build trigger. Design alone stops short of implementation; raw dispatch skips the full pipeline.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-06",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Please implement the CSV export endpoint and raise a pull request for review.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "test-driven-development"
+      ],
+      "context": "Build-shaped: implement + PR, polite phrasing with 'raise a pull request'.",
+      "reasoning": "Phrasing variant ('raise a pull request' vs 'open a PR') still signals the implement-to-shipped pipeline /build owns. The routing should not depend on surface wording.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "build-routing-07",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Build the notification preferences feature end-to-end.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "design",
+        "planning"
+      ],
+      "context": "Build-shaped: explicit 'build end-to-end' framing.",
+      "reasoning": "'Build ... end-to-end' is the most direct verbal trigger for /build \u2014 it requests design-through-execution in one phrase. Design or planning alone covers only the upstream portion.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-08",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Take the new analytics dashboard from idea to working code end-to-end.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "design",
+        "planning"
+      ],
+      "context": "Build-shaped: idea-to-code end-to-end framing.",
+      "reasoning": "'From idea to working code' is verbatim build's description triggers. The full-pipeline framing rules out any single upstream skill.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "build-routing-09",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Design and ship the new passwordless auth flow.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "design",
+        "raw-dispatch"
+      ],
+      "context": "Boundary case: 'design and ship' reads like design but 'ship' implies full pipeline through PR.",
+      "reasoning": "'Ship' means land a PR, which combined with 'design' covers the full /build pipeline. Routing to /design alone would stop at the design doc and never implement or ship.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "build-routing-10",
+      "dimension": "direct",
+      "boundary": "build-vs-raw-dispatch",
+      "prompt": "Refactor the storage layer to use the new blob adapter and open a PR.",
+      "expected_skill": "build",
+      "common_mistakes": [
+        "raw-dispatch",
+        "simplify"
+      ],
+      "context": "Boundary case: refactor + PR. Refactor reads like /simplify but scope + PR makes it build-shaped.",
+      "reasoning": "Refactor with explicit PR at the end is still design-through-execution \u2014 particularly for a cross-cutting layer swap that needs design, test coverage, QG, and PR. /simplify targets localized changed-code cleanup, not full layer migrations.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "ui-implement-vs-verify-direct-01",
+      "dimension": "direct",
+      "boundary": "ui-implement-vs-verify",
+      "prompt": "I just implemented the settings panel in USS. Does it match the mockup screenshot I gave you?",
+      "expected_skill": "ui-verify",
+      "common_mistakes": [
+        "mock-to-unity"
+      ],
+      "context": "Implementation exists; the ask is to compare it against a mockup and report drift, not to build or change it.",
+      "reasoning": "ui-verify produces a drift/delta report comparing implemented Unity UI against a mockup \u2014 exactly 'does it match the screenshot'. mock-to-unity is for turning a mock into USS/C#, i.e. implementing, which is already done here. The signal is verify-against-reference, not implement.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "ui-implement-vs-verify-direct-02",
+      "dimension": "direct",
+      "boundary": "ui-implement-vs-verify",
+      "prompt": "Here's the HTML mockup for the inventory grid. Build it in Unity UI Toolkit.",
+      "expected_skill": "mock-to-unity",
+      "common_mistakes": [
+        "ui-verify",
+        "build"
+      ],
+      "context": "A mockup exists and must be turned into Unity UI Toolkit code from scratch. Nothing to verify yet.",
+      "reasoning": "mock-to-unity turns a mockup/HTML reference into USS/C#. ui-verify would be wrong \u2014 there is no implementation yet to compare against the mock. build is the full idea\u2192PR pipeline, heavier than this scoped UI translation.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "ui-implement-vs-verify-negative-01",
+      "dimension": "negative",
+      "boundary": "ui-implement-vs-verify",
+      "prompt": "The spacing is off and the layout doesn't look like the design \u2014 fix it.",
+      "expected_skill": "mock-to-unity",
+      "common_mistakes": [
+        "ui-verify"
+      ],
+      "context": "Surface phrases ('spacing is off', 'doesn't look like the design') overlap ui-verify's domain, but the imperative is to FIX the UI from the design.",
+      "reasoning": "A fix-imperative on UI-from-a-design routes to mock-to-unity, which owns implementing/fixing UI to match a mock. ui-verify's product is a drift report; the cold fix-imperatives belong to mock-to-unity (this is the A36/A56 disambiguation). The 'fix it' verb is the deciding signal over the drift-observation phrasing.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "ui-implement-vs-verify-context-01",
+      "dimension": "context-dependent",
+      "boundary": "ui-implement-vs-verify",
+      "prompt": "The UI looks wrong compared to the mock. Check what's drifted.",
+      "expected_skill": "ui-verify",
+      "common_mistakes": [
+        "mock-to-unity"
+      ],
+      "context": "Same 'UI looks wrong' surface phrase as a fix request, but the ask is to identify/report what drifted, not to fix it.",
+      "reasoning": "When the request is to CHECK what's drifted (identify and report), it is ui-verify \u2014 its delta report names the drift. If the ask were 'fix it', the same surface phrase would route to mock-to-unity. The deciding context is check-and-report vs implement-a-fix.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "onboarding-entry-direct-01",
+      "dimension": "direct",
+      "boundary": "onboarding-entry",
+      "prompt": "I'm new to Crucible. What skills are available and which should I use for what?",
+      "expected_skill": "workshop",
+      "common_mistakes": [
+        "getting-started",
+        "project-init"
+      ],
+      "context": "Explicit request for a catalog/tour of the skill suite and guidance on which tool fits which task.",
+      "reasoning": "workshop is the on-demand tour of the Crucible workshop \u2014 'what skills are available / which should I use for X' is its exact trigger. getting-started is the silent conversation-start bootstrap protocol, not a user-facing catalog. project-init is codebase onboarding, not skill-suite onboarding.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "onboarding-entry-direct-02",
+      "dimension": "direct",
+      "boundary": "onboarding-entry",
+      "prompt": "I just cloned this repo and have never seen it. Give me full structural context before I start.",
+      "expected_skill": "project-init",
+      "common_mistakes": [
+        "recon",
+        "getting-started"
+      ],
+      "context": "First-time onboarding to an unfamiliar codebase; wants whole-repo structural context, no specific task yet.",
+      "reasoning": "project-init deep-scans an unfamiliar repo for full structural context and cross-repo topology \u2014 first-time whole-repo onboarding. recon is task-scoped investigation (no specific task here). getting-started is conversation bootstrap, not codebase onboarding.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "onboarding-entry-negative-01",
+      "dimension": "negative",
+      "boundary": "onboarding-entry",
+      "prompt": "Where do I start with these tools? Give me a tour.",
+      "expected_skill": "workshop",
+      "common_mistakes": [
+        "getting-started"
+      ],
+      "context": "'Where do I start' overlaps getting-started's bootstrap phrasing, but the explicit ask is a tour of the tools.",
+      "reasoning": "An explicit tour-of-the-tools request is workshop, even though 'where do I start' echoes getting-started's 'starting any conversation'. getting-started is the always-on bootstrap that fires regardless of utterance; the user-facing tour is workshop. The 'give me a tour' signal disambiguates to workshop.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "onboarding-entry-context-01",
+      "dimension": "context-dependent",
+      "boundary": "onboarding-entry",
+      "prompt": "Onboard me to this unfamiliar codebase so I have context before the first real task.",
+      "expected_skill": "project-init",
+      "common_mistakes": [
+        "recon",
+        "workshop"
+      ],
+      "context": "Onboarding to a codebase (not the skill suite) before any specific task \u2014 whole-repo structural context.",
+      "reasoning": "project-init owns codebase onboarding for full structural context before the first task. recon is task-scoped (there is no specific task yet). workshop tours the skill suite, not the codebase. The 'unfamiliar codebase, before the first real task' framing is project-init verbatim.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "explore-vs-improve-direct-01",
+      "dimension": "direct",
+      "boundary": "explore-vs-improve",
+      "prompt": "Before I add OAuth, investigate how auth currently works in this repo.",
+      "expected_skill": "recon",
+      "common_mistakes": [
+        "project-init",
+        "prospector"
+      ],
+      "context": "Task-scoped investigation of one subsystem (auth) in service of a specific upcoming task (add OAuth).",
+      "reasoning": "recon is standalone investigation scoped to the surface a specific task touches \u2014 'investigate how auth works before I add OAuth' is exactly task-scoped recon. project-init is first-time whole-repo onboarding (not scoped to a task). prospector hunts architectural friction/improvements, not how-it-works investigation.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "explore-vs-improve-direct-02",
+      "dimension": "direct",
+      "boundary": "explore-vs-improve",
+      "prompt": "Where are the structural problems in this codebase? What should I refactor?",
+      "expected_skill": "prospector",
+      "common_mistakes": [
+        "recon",
+        "audit"
+      ],
+      "context": "Open-ended hunt for architectural friction and refactor opportunities across the codebase.",
+      "reasoning": "prospector explores a codebase for architectural friction and proposes redesigns \u2014 'where are the structural problems / what should I refactor' is its exact trigger. recon investigates to understand (not to find improvements). audit adversarially reviews a specified subsystem, not an open-ended improvement hunt.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "explore-vs-improve-negative-01",
+      "dimension": "negative",
+      "boundary": "explore-vs-improve",
+      "prompt": "First time in this repo \u2014 map the whole thing and any sibling repos it depends on.",
+      "expected_skill": "project-init",
+      "common_mistakes": [
+        "recon",
+        "prospector"
+      ],
+      "context": "Whole-repo first-time mapping PLUS cross-repo topology \u2014 the distinguishing signal for project-init over recon.",
+      "reasoning": "project-init deep-scans a repo AND discovers cross-repo topology for first-time onboarding \u2014 'map the whole thing and sibling repos' is its signature. recon is task-scoped single-repo investigation (no task here, and recon does not do cross-repo topology). prospector is improvement discovery, not mapping.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "explore-vs-improve-context-01",
+      "dimension": "context-dependent",
+      "boundary": "explore-vs-improve",
+      "prompt": "Explore the payment module so I understand it before I touch the refund flow.",
+      "expected_skill": "recon",
+      "common_mistakes": [
+        "project-init",
+        "prospector"
+      ],
+      "context": "'Explore' with a specific task in view (touch the refund flow) and scoped to one module \u2014 task-scoped recon, not whole-repo onboarding.",
+      "reasoning": "Exploring one module to understand it before a specific change is task-scoped recon. project-init would be wrong \u2014 this is not first-time whole-repo onboarding; it is scoped to the payment module for an upcoming task. prospector hunts improvements, not understanding. The 'before I touch the refund flow' task anchor selects recon.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "adversarial-scope-direct-03",
+      "dimension": "direct",
+      "boundary": "adversarial-scope",
+      "prompt": "I just finished the JWT parser. Write tests that try to break this one function.",
+      "expected_skill": "adversarial-tester",
+      "common_mistakes": [
+        "inquisitor",
+        "test-coverage"
+      ],
+      "context": "A single completed implementation; the ask is to write tests that break that one component.",
+      "reasoning": "adversarial-tester reads one implementation and writes up to 5 tests designed to make it break \u2014 per-task, single component. inquisitor is for a fully-assembled multi-component feature hunting cross-component bugs, not one function. test-coverage audits existing tests for staleness, not adversarial break-it tests.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "warden-gate-direct-01",
+      "dimension": "direct",
+      "boundary": "warden-gate",
+      "prompt": "gate my changes before I push",
+      "expected_skill": "warden",
+      "common_mistakes": [
+        "temper",
+        "quality-gate"
+      ],
+      "context": "User wants the whole pre-push review gate run over their changes, not a single reviewer.",
+      "reasoning": "The 'gate ... before I push' push-gate cue routes to warden \u2014 the whole-set gate that runs temper, delve, red-team, siege, and inquisitor and returns one verdict. temper is a single fresh-eyes merge-verdict reviewer (one leg of warden); quality-gate red-teams a typed artifact, not a code push gate.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "warden-gate-direct-02",
+      "dimension": "direct",
+      "boundary": "warden-gate",
+      "prompt": "is this PR ready to ship?",
+      "expected_skill": "temper",
+      "common_mistakes": [
+        "warden",
+        "quality-gate"
+      ],
+      "context": "User wants a single fresh-eyes production-readiness verdict on a PR, with no push-gate or whole-set cue.",
+      "reasoning": "'is this ready to ship' is temper's single-reviewer merge-verdict trigger and carries NO push-gate cue ('gate', 'the full review gate', 'before I push/pushing/merging'), so it stays with temper and does NOT escalate to warden's whole-set gate. This is the discriminator case: whole-set gate (warden) vs single reviewer (temper).",
+      "difficulty": "hard"
+    },
+    {
+      "id": "warden-gate-direct-03",
+      "dimension": "direct",
+      "boundary": "warden-gate",
+      "prompt": "run the full review gate on this branch",
+      "expected_skill": "warden",
+      "common_mistakes": [
+        "temper",
+        "quality-gate"
+      ],
+      "context": "User explicitly asks for the full review gate across a branch, i.e. all the reviewers plus one verdict.",
+      "reasoning": "'the full review gate' names warden's whole reviewer set (temper + delve + red-team + siege + inquisitor) folded into a single verdict. temper alone is one leg; quality-gate is red-team of a typed artifact. The 'full ... gate' cue selects warden.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "warden-gate-direct-04",
+      "dimension": "direct",
+      "boundary": "warden-gate",
+      "prompt": "review my changes before I push",
+      "expected_skill": "warden",
+      "common_mistakes": [
+        "temper",
+        "quality-gate"
+      ],
+      "context": "'review my changes' overlaps temper, but the trailing 'before I push' is a push-gate cue.",
+      "reasoning": "Bare 'review my changes' is temper's, but the trailing 'before I push' push-gate fragment is warden-owned even when attached to 'review my changes' (the exact collision #464 resolves by ceding push-gate phrasing from temper's description to warden). The push-gate cue hands the utterance to warden's whole-set gate.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "warden-gate-direct-05",
+      "dimension": "direct",
+      "boundary": "warden-gate",
+      "prompt": "review my changes before merging",
+      "expected_skill": "warden",
+      "common_mistakes": [
+        "temper",
+        "quality-gate"
+      ],
+      "context": "'review my changes' overlaps temper, but the trailing 'before merging' is a push-gate cue ceded from temper to warden.",
+      "reasoning": "'before merging' is the push-gate phrasing #464 removed from temper's description and assigned to warden. Attached to 'review my changes' it routes to warden's whole-set pre-push gate, not temper's single-reviewer pass. temper keeps only bare 'review my changes' / 'is this ready to ship'.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "decision-record-direct-01",
+      "dimension": "direct",
+      "boundary": "decision-record",
+      "prompt": "Write an ADR for our choice to use PostgreSQL over MySQL",
+      "expected_skill": "adr",
+      "common_mistakes": [
+        "design"
+      ],
+      "context": "A decision has already been made; the user asks to record it as an ADR.",
+      "reasoning": "adr writes Architecture Decision Records for decisions already made. design explores decisions that have not been made yet.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "decision-record-design-01",
+      "dimension": "context-dependent",
+      "boundary": "decision-record",
+      "prompt": "I need to decide between Postgres and Mongo for our primary store",
+      "expected_skill": "design",
+      "common_mistakes": [
+        "adr"
+      ],
+      "context": "The decision has not been made yet; the user needs to explore and choose.",
+      "reasoning": "design explores and decides. adr only records decisions already made \u2014 it refuses on an unsettled decision.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "decision-record-handoff-01",
+      "dimension": "negative",
+      "boundary": "decision-record",
+      "prompt": "Write up what we decided this session for whoever picks this up next",
+      "expected_skill": "handoff",
+      "common_mistakes": [
+        "adr"
+      ],
+      "context": "The user wants a session-to-session handoff note, not a durable architectural decision record.",
+      "reasoning": "handoff writes session handoff docs. adr writes durable ADRs, whose eligibility bar and durable-format requirements make it wrong for ephemeral session notes.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "decision-record-grudge-01",
+      "dimension": "negative",
+      "boundary": "decision-record",
+      "prompt": "Record this bug so we don't repeat it",
+      "expected_skill": "grudge",
+      "common_mistakes": [
+        "adr"
+      ],
+      "context": "A bug was fixed; the user wants regression memory, not an architectural decision record.",
+      "reasoning": "grudge is the book of grudges \u2014 bug regression memory. adr records decisions with alternatives, not bugs.",
+      "difficulty": "easy"
+    },
+    {
+      "id": "decision-record-finish-01",
+      "dimension": "negative",
+      "boundary": "decision-record",
+      "prompt": "The PR just landed, let's wrap this up",
+      "expected_skill": "finish",
+      "common_mistakes": [
+        "adr",
+        "merge-pr"
+      ],
+      "context": "The work is complete and the user wants to integrate it.",
+      "reasoning": "finish wraps up completed work. adr is reached only by explicit write-an-ADR phrasing, not completion-shaped language.",
+      "difficulty": "medium"
+    },
+    {
+      "id": "decision-record-finish-02",
+      "dimension": "negative",
+      "boundary": "decision-record",
+      "prompt": "We merged the persistence change, record where we ended up",
+      "expected_skill": "finish",
+      "common_mistakes": [
+        "adr"
+      ],
+      "context": "Completion-shaped wrap-up language after a merge.",
+      "reasoning": "'record where we ended up' is completion framing. adr requires explicit write-an-ADR/record-this-decision intent, not 'we shipped X'.",
+      "difficulty": "hard"
+    },
+    {
+      "id": "decision-record-recall-01",
+      "dimension": "negative",
+      "boundary": "decision-record",
+      "prompt": "Why did we choose X for the ledger?",
+      "expected_skill": "recall",
+      "common_mistakes": [
+        "adr"
+      ],
+      "context": "A question seeking an answer about a past decision, not a request to record one.",
+      "reasoning": "recall/recon own the read side (they mine docs/decisions/). adr writes and refuses on a settled decision \u2014 it has no answer output.",
+      "difficulty": "medium"
+    }
+  ]
+}

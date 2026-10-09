@@ -1,0 +1,47 @@
+{
+  "name": "@touchskyer/opc",
+  "version": "0.11.0",
+  "description": "OPC — One Person Company. Task pipeline with independent multi-role evaluation.",
+  "type": "module",
+  "bin": {
+    "opc": "bin/opc.mjs",
+    "opc-harness": "bin/opc-harness.mjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "bin",
+    "scripts",
+    "SKILL.md",
+    "replay.md",
+    "roles",
+    "pipeline",
+    "test",
+    "examples",
+    "docs",
+    "CONTRACTS.md",
+    "INTEGRATION.md",
+    "CHANGELOG.md",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "bash test/run-all.sh",
+    "postinstall": "node scripts/postinstall.mjs"
+  },
+  "keywords": [
+    "claude-code",
+    "ai-agent",
+    "code-review",
+    "one-person-company",
+    "skill"
+  ],
+  "author": "touchskyer",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamtouchskyer/opc.git"
+  },
+  "homepage": "https://github.com/iamtouchskyer/opc"
+}

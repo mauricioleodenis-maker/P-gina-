@@ -1,0 +1,4 @@
+interface:
+  display_name: "Product Requirements (PRD)"
+  short_description: "Draft a structured Product Requirements Document"
+  default_prompt: "Use $prd to draft a structured Product Requirements Document."
